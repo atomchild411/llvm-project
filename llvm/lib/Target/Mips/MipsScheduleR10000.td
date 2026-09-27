@@ -11,17 +11,18 @@
 // address, floating point), issued out of order to five units, and retired
 // in order from a 32-entry active list (48 from the R12000).
 //
-//   ALU1   add, subtract, logic; the shifter, branches, traps and
-//          conditional moves
+//   ALU1   add, subtract, logic; the shifter, branches, traps, conditional
+//          moves, and moves to the FP registers
 //   ALU2   add, subtract, logic; integer multiply and divide, which are
 //          iterative and hold the multiply/divide unit for several cycles
 //   LS     load and store address calculation, one per cycle
-//   FPADD  add, subtract, compare, convert, move; pipelined
-//   FPMUL  multiply, pipelined; divide, square root and the reciprocals go
-//          through its issue port to an iterative divide/square-root unit
+//   FPADD  add, subtract, compare, convert; pipelined
+//   FPMUL  multiply, moves, conditional moves and moves from the FP
+//          registers, pipelined; divide, square root and the reciprocals go
+//          through its issue port to iterative divide/square-root units
 //
-// Latencies and repeat rates are those the R10000 Microprocessor User's
-// Manual tabulates. A multiply-add passes through the multiplier and then the
+// Latencies, repeat rates and units are those of Table 1-2 of the MIPS R10000
+// Microprocessor User's Manual (Version 2.0, October 1996). A multiply-add passes through the multiplier and then the
 // adder, taking its addend there. Integer multiplies and divides give LO a
 // cycle before HI; LO's latency is used.
 //
@@ -36,7 +37,7 @@ def MipsR10000Model : SchedMachineModel {
   // What BasicTTIImpl unrolls loops to, partially or at run time.
   int LoopMicroOpBufferSize = 32;
   int LoadLatency = 2;
-  int MispredictPenalty = 5;
+  int MispredictPenalty = 5; // an estimate: the manual gives no figure
 
   let CompleteModel = 1;
 
@@ -80,13 +81,13 @@ def R10KWriteNop : SchedWriteRes<[]> { let Latency = 0; }
 // Either ALU.
 def : ItinRW<[R10KWriteALU], [II_ADD, II_ADDI, II_ADDIU, II_ADDU, II_AND,
                               II_ANDI, II_DADD, II_DADDI, II_DADDIU, II_DADDU,
-                              II_DSUB, II_DSUBU, II_LI, II_LUI, II_MOVE, II_NOR,
+                              II_DSUB, II_DSUBU, II_LI, II_MOVE, II_NOR,
                               II_NOT, II_OR, II_ORI, II_SLT_SLTU, II_SLTI_SLTIU,
                               II_SUB, II_SUBU, II_XOR, II_XORI, II_MFHI_MFLO,
                               II_MTHI_MTLO]>;
 
-// ALU1: the shifter, conditional moves, branches, jumps and traps.
-def : ItinRW<[R10KWriteALU1], [II_SLL, II_SLLV, II_SRA, II_SRAV, II_SRL,
+// ALU1: the shifter (and lui), conditional moves, branches, jumps and traps.
+def : ItinRW<[R10KWriteALU1], [II_LUI, II_SLL, II_SLLV, II_SRA, II_SRAV, II_SRL,
                                II_SRLV, II_DSLL, II_DSLL32, II_DSLLV, II_DSRA,
                                II_DSRA32, II_DSRAV, II_DSRL, II_DSRL32,
                                II_DSRLV, II_MOVN, II_MOVZ, II_MOVF, II_MOVT,
@@ -109,10 +110,10 @@ class R10KWriteMulDiv<int lat, int busy>
 }
 def R10KWriteMULT : R10KWriteMulDiv<5, 6>;
 def R10KWriteMULTU : R10KWriteMulDiv<6, 7>;
-def R10KWriteDMULT : R10KWriteMulDiv<9, 8>;
-def R10KWriteDMULTU : R10KWriteMulDiv<10, 9>;
-def R10KWriteDIV : R10KWriteMulDiv<34, 34>;
-def R10KWriteDDIV : R10KWriteMulDiv<66, 66>;
+def R10KWriteDMULT : R10KWriteMulDiv<9, 10>;
+def R10KWriteDMULTU : R10KWriteMulDiv<10, 11>;
+def R10KWriteDIV : R10KWriteMulDiv<34, 35>;
+def R10KWriteDDIV : R10KWriteMulDiv<66, 67>;
 
 def : ItinRW<[R10KWriteMULT], [II_MULT, II_MUL, II_MADD, II_MSUB]>;
 def : ItinRW<[R10KWriteMULTU], [II_MULTU, II_MADDU, II_MSUBU]>;
@@ -152,16 +153,16 @@ def R10KWriteFPMAdd : SchedWriteRes<[R10KFPMul, R10KFPAdd]> {
 }
 
 def : ItinRW<[R10KWriteFPAdd], [II_ADD_S, II_ADD_D, II_SUB_S, II_SUB_D,
-                                II_ABS, II_NEG, II_MOV_S, II_MOV_D,
-                                II_C_CC_S, II_C_CC_D, II_CEIL, II_FLOOR,
-                                II_ROUND, II_TRUNC, II_MOVF_S, II_MOVF_D,
-                                II_MOVT_S, II_MOVT_D, II_MOVN_S, II_MOVN_D,
-                                II_MOVZ_S, II_MOVZ_D]>;
+                                II_ABS, II_NEG, II_C_CC_S, II_C_CC_D, II_CEIL,
+                                II_FLOOR, II_ROUND, II_TRUNC]>;
 def : ItinRW<[R10KWriteFPAdd], [II_CVT]>;
 // Integer to single precision is the slow conversion.
 def : InstRW<[R10KWriteFPCvtFromInt], (instrs CVT_S_W, CVT_S_L,
                                               PseudoCVT_S_L)>;
-def : ItinRW<[R10KWriteFPMul], [II_MUL_S, II_MUL_D]>;
+// Moves and conditional moves go through the multiplier.
+def : ItinRW<[R10KWriteFPMul], [II_MUL_S, II_MUL_D, II_MOV_S, II_MOV_D,
+                                II_MOVF_S, II_MOVF_D, II_MOVT_S, II_MOVT_D,
+                                II_MOVN_S, II_MOVN_D, II_MOVZ_S, II_MOVZ_D]>;
 // The addend joins in the adder, two cycles in, so an accumulation chain of
 // multiply-adds runs at the adder's latency: the addend of a multiply-add
 // fed by another is needed two cycles late.
@@ -179,15 +180,21 @@ def R10KWriteDIV_S : R10KWriteFPDivSqrt<12, 14>;
 def R10KWriteDIV_D : R10KWriteFPDivSqrt<19, 21>;
 def R10KWriteSQRT_S : R10KWriteFPDivSqrt<18, 20>;
 def R10KWriteSQRT_D : R10KWriteFPDivSqrt<33, 35>;
+def R10KWriteRSQRT_S : R10KWriteFPDivSqrt<30, 20>;
+def R10KWriteRSQRT_D : R10KWriteFPDivSqrt<52, 35>;
 
 def : ItinRW<[R10KWriteDIV_S], [II_DIV_S, II_RECIP_S]>;
 def : ItinRW<[R10KWriteDIV_D], [II_DIV_D, II_RECIP_D]>;
-def : ItinRW<[R10KWriteSQRT_S], [II_SQRT_S, II_RSQRT_S]>;
-def : ItinRW<[R10KWriteSQRT_D], [II_SQRT_D, II_RSQRT_D]>;
+def : ItinRW<[R10KWriteSQRT_S], [II_SQRT_S]>;
+def : ItinRW<[R10KWriteSQRT_D], [II_SQRT_D]>;
+def : ItinRW<[R10KWriteRSQRT_S], [II_RSQRT_S]>;
+def : ItinRW<[R10KWriteRSQRT_D], [II_RSQRT_D]>;
 
-// Moves between the register files, and the FP control registers.
-def R10KWriteMFC1 : SchedWriteRes<[R10KFPAdd]> { let Latency = 2; }
-def R10KWriteMTC1 : SchedWriteRes<[R10KFPAdd]> { let Latency = 3; }
+// Moves between the register files: to the FP registers through ALU1, from
+// them through the multiplier. The manual leaves out the FP control registers;
+// they are taken to move the same way.
+def R10KWriteMFC1 : SchedWriteRes<[R10KFPMul]> { let Latency = 2; }
+def R10KWriteMTC1 : SchedWriteRes<[R10KALU1]> { let Latency = 3; }
 def : ItinRW<[R10KWriteMFC1], [II_MFC1, II_DMFC1, II_CFC1]>;
 def : ItinRW<[R10KWriteMTC1], [II_MTC1, II_DMTC1, II_CTC1]>;
 

@@ -27,13 +27,13 @@
 
 # CHECK:      Iterations:        1
 # CHECK-NEXT: Instructions:      22
-# CHECK-NEXT: Total Cycles:      121
+# CHECK-NEXT: Total Cycles:      124
 # CHECK-NEXT: Total uOps:        22
 
 # CHECK:      Dispatch Width:    4
 # CHECK-NEXT: uOps Per Cycle:    0.18
 # CHECK-NEXT: IPC:               0.18
-# CHECK-NEXT: Block RThroughput: 115.0
+# CHECK-NEXT: Block RThroughput: 119.0
 
 # CHECK:      Instruction Info:
 # CHECK-NEXT: [1]: #uOps
@@ -50,9 +50,9 @@
 # CHECK-NEXT:  1      1     1.00                        movn	$7, $6, $3
 # CHECK-NEXT:  1      5     6.00                        mult	$6, $7
 # CHECK-NEXT:  1      1     0.50                        mflo	$8
-# CHECK-NEXT:  1      10    9.00                        dmultu	$8, $9
-# CHECK-NEXT:  1      34    34.00                 U     divu	$zero, $8, $9
-# CHECK-NEXT:  1      66    66.00                 U     ddiv	$zero, $10, $11
+# CHECK-NEXT:  1      10    11.00                       dmultu	$8, $9
+# CHECK-NEXT:  1      34    35.00                 U     divu	$zero, $8, $9
+# CHECK-NEXT:  1      66    67.00                 U     ddiv	$zero, $10, $11
 # CHECK-NEXT:  1      1     1.00           *            sd	$9, 16($4)
 # CHECK-NEXT:  1      3     1.00    *                   ldc1	$f24, 8($4)
 # CHECK-NEXT:  1      2     1.00                        add.d	$f6, $f0, $f8
@@ -83,7 +83,7 @@
 
 # CHECK:      Resource pressure per iteration:
 # CHECK-NEXT: [0]    [1]    [2]    [3]    [4]    [5]    [6.0]  [6.1]  [7.0]  [7.1]  [8]    [9]
-# CHECK-NEXT: 3.00   5.00   3.00   7.00   90.00  6.00   7.00   6.00   3.00   3.00   3.00   115.00
+# CHECK-NEXT: 3.00   6.00   3.00   5.00   90.00  7.00   6.00   6.00   3.00   4.00   3.00   119.00
 
 # CHECK:      Resource pressure by instruction:
 # CHECK-NEXT: [0]    [1]    [2]    [3]    [4]    [5]    [6.0]  [6.1]  [7.0]  [7.1]  [8]    [9]    Instructions:
@@ -91,21 +91,21 @@
 # CHECK-NEXT:  -     1.00    -      -      -      -      -      -      -      -      -      -     addu	$3, $2, $5
 # CHECK-NEXT: 1.00    -      -      -      -      -      -      -      -     1.00    -      -     sll	$6, $3, 2
 # CHECK-NEXT: 1.00    -      -      -      -      -      -      -      -     1.00    -      -     movn	$7, $6, $3
-# CHECK-NEXT:  -     1.00    -      -      -      -      -      -     1.00    -      -     6.00   mult	$6, $7
-# CHECK-NEXT: 1.00    -      -      -      -      -      -      -      -      -      -      -     mflo	$8
-# CHECK-NEXT:  -     1.00    -      -      -      -      -      -      -     1.00    -     9.00   dmultu	$8, $9
-# CHECK-NEXT:  -     1.00    -      -      -      -      -      -     1.00    -      -     34.00  divu	$zero, $8, $9
-# CHECK-NEXT:  -     1.00    -      -      -      -      -      -     1.00    -      -     66.00  ddiv	$zero, $10, $11
+# CHECK-NEXT:  -     1.00    -      -      -      -      -      -      -     1.00    -     6.00   mult	$6, $7
+# CHECK-NEXT:  -     1.00    -      -      -      -      -      -      -      -      -      -     mflo	$8
+# CHECK-NEXT:  -     1.00    -      -      -      -      -      -     1.00    -      -     11.00  dmultu	$8, $9
+# CHECK-NEXT:  -     1.00    -      -      -      -      -      -      -     1.00    -     35.00  divu	$zero, $8, $9
+# CHECK-NEXT:  -     1.00    -      -      -      -      -      -     1.00    -      -     67.00  ddiv	$zero, $10, $11
 # CHECK-NEXT:  -      -     1.00    -      -      -      -      -      -      -     1.00    -     sd	$9, 16($4)
 # CHECK-NEXT:  -      -     1.00    -      -      -      -      -      -      -     1.00    -     ldc1	$f24, 8($4)
 # CHECK-NEXT:  -      -      -     1.00    -      -      -     1.00    -      -      -      -     add.d	$f6, $f0, $f8
 # CHECK-NEXT:  -      -      -     2.00    -      -     2.00    -      -      -      -      -     cvt.s.w	$f5, $f7
-# CHECK-NEXT:  -      -      -     1.00    -      -     1.00    -      -      -      -      -     cvt.d.s	$f9, $f5
+# CHECK-NEXT:  -      -      -     1.00    -      -      -     1.00    -      -      -      -     cvt.d.s	$f9, $f5
 # CHECK-NEXT:  -      -      -      -      -     1.00    -     1.00    -      -      -      -     mul.d	$f0, $f2, $f4
 # CHECK-NEXT:  -      -      -     1.00    -     1.00   2.00    -      -      -      -      -     madd.d	$f10, $f12, $f14, $f16
 # CHECK-NEXT:  -      -      -      -     14.00  1.00    -     1.00    -      -      -      -     div.s	$f18, $f20, $f22
-# CHECK-NEXT:  -      -      -      -     21.00  1.00   1.00    -      -      -      -      -     div.d	$f18, $f20, $f22
-# CHECK-NEXT:  -      -      -      -     20.00  1.00    -     1.00    -      -      -      -     sqrt.s	$f1, $f3
-# CHECK-NEXT:  -      -      -      -     35.00  1.00   1.00    -      -      -      -      -     sqrt.d	$f2, $f4
-# CHECK-NEXT:  -      -      -     1.00    -      -      -     1.00    -      -      -      -     mtc1	$2, $f26
-# CHECK-NEXT:  -      -      -     1.00    -      -      -     1.00    -      -      -      -     mfc1	$3, $f26
+# CHECK-NEXT:  -      -      -      -     21.00  1.00    -     1.00    -      -      -      -     div.d	$f18, $f20, $f22
+# CHECK-NEXT:  -      -      -      -     20.00  1.00   1.00    -      -      -      -      -     sqrt.s	$f1, $f3
+# CHECK-NEXT:  -      -      -      -     35.00  1.00    -     1.00    -      -      -      -     sqrt.d	$f2, $f4
+# CHECK-NEXT: 1.00    -      -      -      -      -      -      -     1.00    -      -      -     mtc1	$2, $f26
+# CHECK-NEXT:  -      -      -      -      -     1.00   1.00    -      -      -      -      -     mfc1	$3, $f26
