@@ -18,6 +18,7 @@
 #include "clang/Driver/Compilation.h"
 #include "clang/Driver/Driver.h"
 #include "clang/Driver/Options.h"
+#include "llvm/ADT/StringSwitch.h"
 #include "llvm/Option/ArgList.h"
 #include "llvm/Support/Path.h"
 
@@ -45,7 +46,13 @@ IRIX::IRIX(const Driver &D, const llvm::Triple &Triple, const ArgList &Args)
   addPathIfExists(D, SysRoot + "/usr/sgug/lib" + LibSuffix, getFilePaths());
   // The ISA the code is built for, so that n32 code built for MIPS III links
   // against MIPS III libraries (and runs on an R4400) even on an R10000.
-  getFilePaths().push_back(SysRoot + "/usr/lib" + LibSuffix + "/" + CPU.str());
+  // IRIX has MIPS III and MIPS IV builds.
+  StringRef ISADir = llvm::StringSwitch<StringRef>(CPU)
+                         .Cases("mips4", "mips5", "r10000", "r12000", "r14000",
+                                "r16000", "mips4")
+                         .Default("mips3");
+  getFilePaths().push_back(SysRoot + "/usr/lib" + LibSuffix + "/" +
+                           ISADir.str());
   getFilePaths().push_back(SysRoot + "/usr/lib" + LibSuffix);
   getFilePaths().push_back(SysRoot + "/lib" + LibSuffix);
   // LLVM's own runtimes, if installed as a tree beside the driver.

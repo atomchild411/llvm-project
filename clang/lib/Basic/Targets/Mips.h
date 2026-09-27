@@ -188,6 +188,9 @@ public:
       Features["mips64r2"] = Features["cnmips"] = true;
     else if (CPU == "octeon+")
       Features["mips64r2"] = Features["cnmips"] = Features["cnmipsp"] = true;
+    else if (CPU == "r10000" || CPU == "r12000" || CPU == "r14000" ||
+             CPU == "r16000")
+      Features["mips4"] = true;
     else
       Features[CPU] = true;
     return TargetInfo::initFeatureMap(Features, Diags, CPU, FeaturesVec);

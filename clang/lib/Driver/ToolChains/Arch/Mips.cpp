@@ -100,6 +100,7 @@ void mips::getMipsCPUAndABI(const ArgList &Args, const llvm::Triple &Triple,
                   .Case("mips3", "n64")
                   .Case("mips4", "n64")
                   .Case("mips5", "n64")
+                  .Cases("r10000", "r12000", "r14000", "r16000", "n64")
                   .Case("mips32", "o32")
                   .Case("mips32r2", "o32")
                   .Case("mips32r3", "o32")
@@ -433,6 +434,7 @@ mips::IEEE754Standard mips::getIEEE754Standard(StringRef &CPU) {
       .Case("mips3", Legacy)
       .Case("mips4", Legacy)
       .Case("mips5", Legacy)
+      .Cases("r10000", "r12000", "r14000", "r16000", Legacy)
       .Case("mips32", Legacy)
       .Case("mips32r2", Legacy | Std2008)
       .Case("mips32r3", Legacy | Std2008)
@@ -490,6 +492,7 @@ bool mips::isFPXXDefault(const llvm::Triple &Triple, StringRef CPUName,
 
   return llvm::StringSwitch<bool>(CPUName)
       .Cases("mips2", "mips3", "mips4", "mips5", true)
+      .Cases("r10000", "r12000", "r14000", "r16000", true)
       .Cases("mips32", "mips32r2", "mips32r3", "mips32r5", true)
       .Cases("mips64", "mips64r2", "mips64r3", "mips64r5", true)
       .Default(false);
