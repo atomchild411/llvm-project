@@ -19,6 +19,26 @@
 #ifndef __CLANG_IRIX_WCHAR_H
 #define __CLANG_IRIX_WCHAR_H
 
+/* IRIX 6.5.22's <wchar.h> uses va_list (vsscanf, vfscanf, ...) without
+ * including <stdarg.h>, and our _VA_LIST_ keeps it from declaring its own:
+ * declare just va_list (POSIX allows it here), as clang's <stdarg.h> does. */
+#define __need_va_list
+#include <stdarg.h>
+
+/* IRIX 6.5.22's <wchar.h> sets its guard, then includes <wctype.h> before it
+ * declares anything, and <wctype.h> includes <wchar.h> again. In C++ that is
+ * libc++'s, whose body then uses wcschr and friends before IRIX has declared
+ * them. Declare them first: they live in internal/wchar_core.h (guarded;
+ * 6.5.7 has no such file), after the headers IRIX's <wchar.h> itself
+ * includes ahead of it, in the same order. */
+#if defined(__cplusplus) && __has_include(<internal/wchar_core.h>)
+#include <stdio.h>
+#include <ctype.h>
+#include <time.h>
+#include <locale_attr.h>
+#include <internal/wchar_core.h>
+#endif
+
 #include_next <wchar.h>
 
 #if defined(__cplusplus) && defined(_E1)

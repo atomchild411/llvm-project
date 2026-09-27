@@ -27,6 +27,12 @@
 #ifndef __CLANG_IRIX_STDIO_H
 #define __CLANG_IRIX_STDIO_H
 
+/* IRIX 6.5.22's <stdio.h> uses va_list (vsscanf, vfscanf, ...) without
+ * including <stdarg.h>, and our _VA_LIST_ keeps it from declaring its own:
+ * declare just va_list (POSIX allows it here), as clang's <stdarg.h> does. */
+#define __need_va_list
+#include <stdarg.h>
+
 #include_next <stdio.h>
 
 #ifdef __cplusplus

@@ -6,8 +6,11 @@
  *
  *===-----------------------------------------------------------------------===
  *
- * IRIX 6.5.7's <ctype.h> has C99's isblank only as __isblank. Add isblank on
- * it for releases before 6.5.22 (see __IRIX_VERSION__).
+ * IRIX 6.5.7's <ctype.h> has C99's isblank only as __isblank; 6.5.22's
+ * declares isblank too. Declare isblank as libc's __isblank (asm label),
+ * which every 6.5 release exports: right whichever headers are present --
+ * a 6.5.22 root builds for the 6.5.7 floor as well -- where a definition of
+ * our own would clash with 6.5.22's declaration.
  */
 
 #ifndef __CLANG_IRIX_CTYPE_H
@@ -15,8 +18,12 @@
 
 #include_next <ctype.h>
 
-#if __IRIX_VERSION__ < 60522 && !defined(isblank)
-static __inline__ int isblank(int __c) { return __isblank(__c); }
+#if !defined(isblank)
+#ifdef __cplusplus
+extern "C" int isblank(int) __asm__("__isblank");
+#else
+extern int isblank(int) __asm__("__isblank");
+#endif
 #endif
 
 #endif /* __CLANG_IRIX_CTYPE_H */
