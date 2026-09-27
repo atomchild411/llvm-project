@@ -395,6 +395,12 @@ set(zos_wrapper_files
   zos_wrappers/builtins.h
 )
 
+set(irix_wrapper_files
+  irix_wrappers/inttypes.h
+  irix_wrappers/stdlib.h
+  irix_wrappers/unistd.h
+)
+
 include(GetClangResourceDir)
 get_clang_resource_dir(output_dir PREFIX ${LLVM_LIBRARY_OUTPUT_INTDIR}/.. SUBDIR include)
 set(out_files)
@@ -443,7 +449,7 @@ endfunction(clang_generate_header)
 
 # Copy header files from the source directory to the build directory
 foreach( f ${files} ${cuda_wrapper_files} ${cuda_wrapper_bits_files}
-           ${ppc_wrapper_files} ${openmp_wrapper_files} ${zos_wrapper_files} ${hlsl_files}
+           ${ppc_wrapper_files} ${openmp_wrapper_files} ${zos_wrapper_files} ${irix_wrapper_files} ${hlsl_files}
 	   ${llvm_libc_wrapper_files} ${llvm_offload_wrapper_files})
   copy_header_to_output_dir(${CMAKE_CURRENT_SOURCE_DIR} ${f})
 endforeach( f )
@@ -557,7 +563,7 @@ add_header_target("cuda-resource-headers" "${cuda_files};${cuda_wrapper_files};$
 add_header_target("hexagon-resource-headers" "${hexagon_files}")
 add_header_target("hip-resource-headers" "${hip_files}")
 add_header_target("loongarch-resource-headers" "${loongarch_files}")
-add_header_target("mips-resource-headers" "${mips_msa_files}")
+add_header_target("mips-resource-headers" "${mips_msa_files};${irix_wrapper_files}")
 add_header_target("ppc-resource-headers" "${ppc_files};${ppc_wrapper_files}")
 add_header_target("ppc-htm-resource-headers" "${ppc_htm_files}")
 add_header_target("riscv-resource-headers" "${riscv_files};${riscv_generated_files}")
@@ -623,6 +629,11 @@ install(
 install(
   FILES ${zos_wrapper_files}
   DESTINATION ${header_install_dir}/zos_wrappers
+  COMPONENT clang-resource-headers)
+
+install(
+  FILES ${irix_wrapper_files}
+  DESTINATION ${header_install_dir}/irix_wrappers
   COMPONENT clang-resource-headers)
 
 #############################################################

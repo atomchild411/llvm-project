@@ -77,8 +77,13 @@ void IRIX::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
   if (DriverArgs.hasArg(options::OPT_nostdinc))
     return;
 
-  if (!DriverArgs.hasArg(options::OPT_nobuiltininc))
+  if (!DriverArgs.hasArg(options::OPT_nobuiltininc)) {
     addSystemInclude(DriverArgs, CC1Args, D.ResourceDir + "/include");
+    // What IRIX's own headers lack (C99 format macros before 6.5.22, ...):
+    // each wrapper includes IRIX's header and adds only what is missing.
+    addSystemInclude(DriverArgs, CC1Args,
+                     D.ResourceDir + "/include/irix_wrappers");
+  }
 
   if (DriverArgs.hasArg(options::OPT_nostdlibinc))
     return;

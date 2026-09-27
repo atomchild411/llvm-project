@@ -463,6 +463,9 @@ protected:
 
     if (Opts.CPlusPlus) {
       Builder.defineMacro("_LANGUAGE_C_PLUS_PLUS", "1");
+      // wchar_t is built in: the guard SGI's headers check before declaring
+      // their own (a C typedef, illegal in C++).
+      Builder.defineMacro("_WCHAR_T");
     } else {
       Builder.defineMacro("_LANGUAGE_C");
       if (Opts.GNUMode)
