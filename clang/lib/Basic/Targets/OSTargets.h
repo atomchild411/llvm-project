@@ -454,6 +454,17 @@ protected:
     Builder.defineMacro("_LONGLONG");
     Builder.defineMacro("_COMPILER_VERSION", "740");
     Builder.defineMacro("_SGI_COMPILER_VERSION", "740");
+
+    // The IRIX release built for, from the triple (mips64-sgi-irix6.5.22),
+    // as 60522. With none given, 6.5.7, the oldest supported: what builds
+    // for it runs on every later 6.5 release. Headers use it to supply what
+    // older releases lack (see clang's irix_wrappers).
+    VersionTuple Version = Triple.getOSVersion();
+    unsigned Major = Version.getMajor() ? Version.getMajor() : 6;
+    unsigned Minor = Version.getMinor().value_or(5);
+    unsigned Release = Version.getSubminor().value_or(7);
+    Builder.defineMacro("__IRIX_VERSION__",
+                        Twine(Major * 10000 + Minor * 100 + Release));
     if (Opts.GNUMode) {
       // MIPSpro also defines these in the user's namespace.
       Builder.defineMacro("sgi");
@@ -490,8 +501,9 @@ protected:
     if (Opts.C99 || Opts.CPlusPlus)
       Builder.defineMacro("__c99");
 
-    // IRIX's <stdarg.h> is MIPSpro-only (__builtin_classof); clang owns
-    // va_list. _VA_LIST_ is the guard SGI's headers use to leave it alone.
+    // IRIX's <stdarg.h> is MIPSpro-only (__builtin_classof), so clang's
+    // stands in; _VA_LIST_ is the guard SGI's headers use to leave va_list
+    // alone. Both say char * (see getBuiltinVaListKind).
     Builder.defineMacro("_VA_LIST_");
 
     if (Opts.POSIXThreads)
@@ -501,6 +513,13 @@ protected:
 public:
   IRIXTargetInfo(const llvm::Triple &Triple, const TargetOptions &Opts)
       : OSTargetInfo<Target>(Triple, Opts) {}
+
+  // va_list is char * on IRIX, as MIPSpro has it and as every prototype in
+  // SGI's headers spells it (vfprintf(FILE *, const char *, char *)); the
+  // MIPS default, void *, does not convert to that in C++.
+  TargetInfo::BuiltinVaListKind getBuiltinVaListKind() const override {
+    return TargetInfo::CharPtrBuiltinVaList;
+  }
 };
 
 // NetBSD Target
