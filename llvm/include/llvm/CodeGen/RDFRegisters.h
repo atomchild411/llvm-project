@@ -353,23 +353,24 @@ template <> struct equal_to<llvm::rdf::RegisterAggr> {
   }
 };
 
-template <> struct less<llvm::rdf::RegisterRef> {
-  constexpr less(const llvm::rdf::PhysicalRegisterInfo &pri) : PRI(&pri) {}
+} // namespace std
 
-  bool operator()(llvm::rdf::RegisterRef A, llvm::rdf::RegisterRef B) const {
+namespace llvm::rdf {
+// Orders RegisterRefs through a PhysicalRegisterInfo. A named comparator, not
+// a std::less specialization: newer libc++ requires std::less<T> to be empty
+// (stateless), and this one carries the PhysicalRegisterInfo.
+struct RegisterRefLess {
+  constexpr RegisterRefLess(const PhysicalRegisterInfo &pri) : PRI(&pri) {}
+
+  bool operator()(RegisterRef A, RegisterRef B) const {
     return PRI->less(A, B);
   }
 
 private:
-  // Make it a pointer because apparently some versions of MSVC use std::swap
-  // on the std::less specialization.
-  const llvm::rdf::PhysicalRegisterInfo *PRI;
+  const PhysicalRegisterInfo *PRI;
 };
 
-} // namespace std
-
-namespace llvm::rdf {
-using RegisterSet = std::set<RegisterRef, std::less<RegisterRef>>;
+using RegisterSet = std::set<RegisterRef, RegisterRefLess>;
 } // namespace llvm::rdf
 
 #endif // LLVM_CODEGEN_RDFREGISTERS_H
