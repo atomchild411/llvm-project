@@ -3919,3 +3919,21 @@ MipsSETargetLowering::emitFEXP2_D_1(MachineInstr &MI,
   MI.eraseFromParent(); // The pseudo instruction is gone now.
   return BB;
 }
+
+// Under n32, 32-bit integers and pointers are passed sign-extended to 64 bits,
+// whatever their signedness. Calls the front end emits carry the signext
+// attributes that say so; library calls made during lowering do not, so the
+// callee (MIPSpro-, gcc- or clang-built) can see garbage in the upper half.
+void MipsSETargetLowering::markLibCallAttributes(MachineFunction *MF,
+                                                 unsigned CC,
+                                                 ArgListTy &Args) const {
+  if (!Subtarget.isABI_N32())
+    return;
+
+  for (ArgListEntry &Arg : Args) {
+    if (Arg.Ty->isIntOrPtrTy()) {
+      Arg.IsSExt = true;
+      Arg.IsZExt = false;
+    }
+  }
+}

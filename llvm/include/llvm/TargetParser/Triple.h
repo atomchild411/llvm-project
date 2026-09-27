@@ -197,7 +197,8 @@ public:
     SUSE,
     OpenEmbedded,
     Intel,
-    LastVendorType = Intel
+    SGI,
+    LastVendorType = SGI
   };
   enum OSType {
     UnknownOS,
@@ -243,7 +244,8 @@ public:
     LiteOS,
     Serenity,
     Vulkan, // Vulkan SPIR-V
-    LastOSType = Vulkan
+    IRIX,   // SGI IRIX
+    LastOSType = IRIX
   };
   enum EnvironmentType {
     UnknownEnvironment,
@@ -727,6 +729,11 @@ public:
   /// Tests whether the OS is Linux.
   bool isOSLinux() const {
     return getOS() == Triple::Linux;
+  }
+
+  /// Tests whether the OS is IRIX.
+  bool isOSIRIX() const {
+    return getOS() == Triple::IRIX;
   }
 
   /// Tests whether the OS is kFreeBSD.

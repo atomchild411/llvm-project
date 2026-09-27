@@ -148,7 +148,8 @@ MipsTargetMachine::MipsTargetMachine(const Target &T, const Triple &TT,
   initAsmInfo();
 
   // Mips supports the debug entry values.
-  setSupportsDebugEntryValues(true);
+  // Except on IRIX, whose debuggers do not understand DW_OP_entry_value.
+  setSupportsDebugEntryValues(!TT.isOSIRIX());
 }
 
 MipsTargetMachine::~MipsTargetMachine() = default;
