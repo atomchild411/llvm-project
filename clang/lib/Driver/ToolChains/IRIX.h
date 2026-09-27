@@ -78,6 +78,8 @@ protected:
 
 private:
   std::string ABI;
+  // Where LLVM's libc++ was found beside the driver, if it was.
+  std::string RuntimeLibDir;
   std::string LibSuffix;
 };
 

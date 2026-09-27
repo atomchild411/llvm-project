@@ -21,6 +21,8 @@
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/Option/ArgList.h"
 #include "llvm/Support/Path.h"
+#include "llvm/Support/VirtualFileSystem.h"
+#include "llvm/TargetParser/Host.h"
 
 using namespace clang::driver;
 using namespace clang::driver::tools;
@@ -55,9 +57,19 @@ IRIX::IRIX(const Driver &D, const llvm::Triple &Triple, const ArgList &Args)
                            ISADir.str());
   getFilePaths().push_back(SysRoot + "/usr/lib" + LibSuffix);
   getFilePaths().push_back(SysRoot + "/lib" + LibSuffix);
-  // LLVM's own runtimes, if installed as a tree beside the driver.
-  addPathIfExists(D, llvm::sys::path::parent_path(D.Dir) + "/lib" + LibSuffix,
-                  getFilePaths());
+  // LLVM's own runtimes (libc++ and its companions), if installed in a tree
+  // beside the driver: in lib32 or lib64, as in /opt/llvm, or for n32 in lib,
+  // as in /opt/pkgsrc, whose n32 libraries live there.
+  std::string Prefix = llvm::sys::path::parent_path(D.Dir).str();
+  for (const std::string &Dir :
+       {Prefix + "/lib" + LibSuffix,
+        LibSuffix == "32" ? Prefix + "/lib" : std::string()}) {
+    if (Dir.empty() || !D.getVFS().exists(Dir))
+      continue;
+    getFilePaths().push_back(Dir);
+    if (RuntimeLibDir.empty() && D.getVFS().exists(Dir + "/libc++.so"))
+      RuntimeLibDir = Dir;
+  }
 }
 
 Tool *IRIX::buildLinker() const { return new tools::irix::Linker(*this); }
@@ -148,6 +160,15 @@ void IRIX::AddCXXStdlibLibArgs(const ArgList &Args,
   switch (GetCXXStdlibType(Args)) {
   case ToolChain::CST_Libcxx:
     CmdArgs.push_back("-lc++");
+    // rld has no $ORIGIN and ignores DT_RUNPATH, so a program built by a
+    // clang running on IRIX finds the libc++ it was linked with through
+    // DT_RPATH. (Cross-compiled, where the driver's tree is not the
+    // program's, it is left to the -rpath of the machine it will run on.)
+    if (!RuntimeLibDir.empty() &&
+        llvm::Triple(llvm::sys::getProcessTriple()).isOSIRIX()) {
+      CmdArgs.push_back("-rpath");
+      CmdArgs.push_back(Args.MakeArgString(RuntimeLibDir));
+    }
     break;
   case ToolChain::CST_Libstdcxx:
     getDriver().Diag(diag::err_drv_unsupported_opt_for_target)
