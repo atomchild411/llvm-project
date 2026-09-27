@@ -428,6 +428,78 @@ public:
   }
 };
 
+// IRIX Target
+//
+// The predefines are MIPSpro 7.4's, as `cc -show` reports them on IRIX 6.5
+// for C and C++, n32 and 64, -mips3 and -mips4, shared and -non_shared: SGI's
+// headers gate nearly every declaration on them. Two are left out on
+// purpose: __INLINE_INTRINSICS selects MIPSpro-only #pragma intrinsic forms,
+// and __MATH_HAS_NO_SIDE_EFFECTS promises an errno behaviour we do not keep.
+// The ISA (__mips, _MIPS_ISA) comes from MipsTargetInfo.
+template <typename Target>
+class LLVM_LIBRARY_VISIBILITY IRIXTargetInfo : public OSTargetInfo<Target> {
+protected:
+  void getOSDefines(const LangOptions &Opts, const llvm::Triple &Triple,
+                    MacroBuilder &Builder) const override {
+    Builder.defineMacro("__sgi");
+    Builder.defineMacro("__unix");
+    Builder.defineMacro("__unix__");
+    Builder.defineMacro("__host_mips");
+    Builder.defineMacro("__ELF__");
+    Builder.defineMacro("__EXTENSIONS__");
+    Builder.defineMacro("_SGI_SOURCE");
+    Builder.defineMacro("_SVR4_SOURCE");
+    Builder.defineMacro("_SYSTYPE_SVR4");
+    Builder.defineMacro("_MODERN_C");
+    Builder.defineMacro("_LONGLONG");
+    Builder.defineMacro("_COMPILER_VERSION", "740");
+    Builder.defineMacro("_SGI_COMPILER_VERSION", "740");
+    if (Opts.GNUMode) {
+      // MIPSpro also defines these in the user's namespace.
+      Builder.defineMacro("sgi");
+      Builder.defineMacro("unix");
+      Builder.defineMacro("host_mips");
+    }
+
+    if (Opts.CPlusPlus) {
+      Builder.defineMacro("_LANGUAGE_C_PLUS_PLUS", "1");
+    } else {
+      Builder.defineMacro("_LANGUAGE_C");
+      if (Opts.GNUMode)
+        Builder.defineMacro("LANGUAGE_C");
+    }
+
+    // The sizes MIPSpro gives beside _MIPS_SZINT and friends.
+    Builder.defineMacro("_SIZE_INT", Twine(this->getIntWidth()));
+    Builder.defineMacro("_SIZE_LONG", Twine(this->getLongWidth()));
+    Builder.defineMacro("_SIZE_PTR",
+                        Twine(this->getPointerWidth(LangAS::Default)));
+
+    // Position-independent code, which is the default: MIPSpro drops these
+    // under -non_shared.
+    if (Opts.PICLevel) {
+      Builder.defineMacro("_PIC");
+      Builder.defineMacro("__DSO__");
+    }
+
+    // MIPSpro sets __c99 only under -c99. It gates IRIX's C99 headers
+    // (<stdint.h> #errors without it) and C++'s <cstdint> needs them too.
+    if (Opts.C99 || Opts.CPlusPlus)
+      Builder.defineMacro("__c99");
+
+    // IRIX's <stdarg.h> is MIPSpro-only (__builtin_classof); clang owns
+    // va_list. _VA_LIST_ is the guard SGI's headers use to leave it alone.
+    Builder.defineMacro("_VA_LIST_");
+
+    if (Opts.POSIXThreads)
+      Builder.defineMacro("_REENTRANT");
+  }
+
+public:
+  IRIXTargetInfo(const llvm::Triple &Triple, const TargetOptions &Opts)
+      : OSTargetInfo<Target>(Triple, Opts) {}
+};
+
 // NetBSD Target
 template <typename Target>
 class LLVM_LIBRARY_VISIBILITY NetBSDTargetInfo : public OSTargetInfo<Target> {

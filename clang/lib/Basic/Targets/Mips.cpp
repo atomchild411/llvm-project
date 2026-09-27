@@ -95,10 +95,21 @@ void MipsTargetInfo::getTargetDefines(const LangOptions &Opts,
     Builder.defineMacro("__mips", "32");
     Builder.defineMacro("_MIPS_ISA", "_MIPS_ISA_MIPS32");
   } else {
-    Builder.defineMacro("__mips", "64");
+    if (getTriple().isOSIRIX()) {
+      // MIPSpro gives both as the ISA level (3 or 4), and SGI's headers
+      // compare them numerically.
+      StringRef Level = llvm::StringSwitch<StringRef>(CPU)
+                            .Case("mips4", "4")
+                            .Case("mips5", "5")
+                            .Default("3");
+      Builder.defineMacro("__mips", Level);
+      Builder.defineMacro("_MIPS_ISA", Level);
+    } else {
+      Builder.defineMacro("__mips", "64");
+      Builder.defineMacro("_MIPS_ISA", "_MIPS_ISA_MIPS64");
+    }
     Builder.defineMacro("__mips64");
     Builder.defineMacro("__mips64__");
-    Builder.defineMacro("_MIPS_ISA", "_MIPS_ISA_MIPS64");
   }
 
   const std::string ISARev = std::to_string(getISARev());

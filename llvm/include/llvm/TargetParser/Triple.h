@@ -1171,7 +1171,7 @@ public:
   /// Note: Android API level 29 (10) introduced ELF TLS.
   bool hasDefaultEmulatedTLS() const {
     return (isAndroid() && isAndroidVersionLT(29)) || isOSOpenBSD() ||
-           isWindowsCygwinEnvironment() || isOHOSFamily();
+           isWindowsCygwinEnvironment() || isOHOSFamily() || isOSIRIX();
   }
 
   /// True if the target uses TLSDESC by default.

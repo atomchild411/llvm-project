@@ -63,6 +63,15 @@ void mips::getMipsCPUAndABI(const ArgList &Args, const llvm::Triple &Triple,
                   .Default(ABIName);
   }
 
+  // IRIX: n32 unless told otherwise; MIPS III for n32 (so R4400s run it) and
+  // MIPS IV for n64, as MIPSpro does.
+  if (Triple.isOSIRIX()) {
+    if (ABIName.empty())
+      ABIName = "n32";
+    if (CPUName.empty())
+      CPUName = ABIName == "n64" ? "mips4" : "mips3";
+  }
+
   // Setup default CPU and ABI names.
   if (CPUName.empty() && ABIName.empty()) {
     switch (Triple.getArch()) {

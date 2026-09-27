@@ -277,6 +277,8 @@ std::unique_ptr<TargetInfo> AllocateTarget(const llvm::Triple &Triple,
 
   case llvm::Triple::mips:
     switch (os) {
+    case llvm::Triple::IRIX:
+      return std::make_unique<IRIXTargetInfo<MipsTargetInfo>>(Triple, Opts);
     case llvm::Triple::Linux:
       return std::make_unique<LinuxTargetInfo<MipsTargetInfo>>(Triple, Opts);
     case llvm::Triple::RTEMS:
@@ -321,6 +323,8 @@ std::unique_ptr<TargetInfo> AllocateTarget(const llvm::Triple &Triple,
 
   case llvm::Triple::mips64:
     switch (os) {
+    case llvm::Triple::IRIX:
+      return std::make_unique<IRIXTargetInfo<MipsTargetInfo>>(Triple, Opts);
     case llvm::Triple::Linux:
       return std::make_unique<LinuxTargetInfo<MipsTargetInfo>>(Triple, Opts);
     case llvm::Triple::RTEMS:

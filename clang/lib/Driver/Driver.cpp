@@ -37,6 +37,7 @@
 #include "ToolChains/MinGW.h"
 #include "ToolChains/MipsLinux.h"
 #include "ToolChains/NaCl.h"
+#include "ToolChains/IRIX.h"
 #include "ToolChains/NetBSD.h"
 #include "ToolChains/OHOS.h"
 #include "ToolChains/OpenBSD.h"
@@ -6814,6 +6815,9 @@ const ToolChain &Driver::getToolChain(const ArgList &Args,
       break;
     case llvm::Triple::NetBSD:
       TC = std::make_unique<toolchains::NetBSD>(*this, Target, Args);
+      break;
+    case llvm::Triple::IRIX:
+      TC = std::make_unique<toolchains::IRIX>(*this, Target, Args);
       break;
     case llvm::Triple::FreeBSD:
       if (Target.isPPC())
