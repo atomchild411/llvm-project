@@ -14,6 +14,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <mutex>
 #include <optional>
 #include <string.h>
 #include <string>
@@ -153,6 +154,27 @@ string do_strerror_r(int ev) {
     return string(buffer);
   std::snprintf(buffer, strerror_buff_size, "unknown error %d", ev);
   return string(buffer);
+}
+#  elif defined(__sgi)
+// IRIX has no strerror_r, and strerror may build its message in a buffer of
+// its own (the text comes from a message catalogue), so take turns.
+string do_strerror_r(int ev) {
+  static mutex strerror_mutex;
+  const int old_errno = errno;
+  string result;
+  {
+    lock_guard<mutex> lock(strerror_mutex);
+    const char* message = ::strerror(ev);
+    if (message != nullptr && message[0] != '\0')
+      result = message;
+  }
+  if (result.empty()) {
+    char buffer[strerror_buff_size];
+    std::snprintf(buffer, strerror_buff_size, "Unknown error %d", ev);
+    result = buffer;
+  }
+  errno = old_errno;
+  return result;
 }
 #  else
 
