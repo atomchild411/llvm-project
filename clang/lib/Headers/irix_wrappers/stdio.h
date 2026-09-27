@@ -13,6 +13,15 @@
  * return what C99 says, on top of IRIX's own: when the output may not have
  * fit, format it again into ever larger scratch buffers to measure it.
  * They are declared whatever the feature macros, as C99 requires.
+ *
+ * Nor does IRIX's printf family know C99's length modifiers z, t, j and hh:
+ * it takes the letter for the conversion, the arguments fall out of step
+ * with the format, and a later %s prints whatever the misread argument
+ * points at. printf, fprintf, sprintf and their v- forms are sent (by asm
+ * label, so that printf still names printf to the compiler, as in
+ * __attribute__((format(printf, ...)))) to compiler-rt's __irix_c99_*, which
+ * rewrite the format into one IRIX understands and call IRIX's own; snprintf
+ * and vsnprintf below rewrite it the same way.
  */
 
 #ifndef __CLANG_IRIX_STDIO_H
@@ -31,31 +40,56 @@ extern int __irix_libc_vsnprintf(char *, long, const char *, char *)
 extern void *__irix_libc_malloc(size_t) __asm__("malloc");
 extern void __irix_libc_free(void *) __asm__("free");
 
+/* C99 formats: in compiler-rt (irix/printf_c99.c). */
+extern const char *__irix_c99_fmt(const char *, char *, size_t, char **);
+extern int printf(const char *, ...) __asm__("__irix_c99_printf");
+extern int fprintf(FILE *, const char *, ...) __asm__("__irix_c99_fprintf");
+extern int sprintf(char *, const char *, ...) __asm__("__irix_c99_sprintf");
+extern int vprintf(const char *, __builtin_va_list)
+    __asm__("__irix_c99_vprintf");
+extern int vfprintf(FILE *, const char *, __builtin_va_list)
+    __asm__("__irix_c99_vfprintf");
+extern int vsprintf(char *, const char *, __builtin_va_list)
+    __asm__("__irix_c99_vsprintf");
+
 static __inline__
     __attribute__((__format__(__printf__, 3, 0))) int
     __irix_vsnprintf(char *__s, size_t __n, const char *__fmt,
                      __builtin_va_list __ap) {
   __builtin_va_list __ap2;
+  char __fbuf[256], *__fheap;
   size_t __size;
   int __r;
 
+  __fmt = __irix_c99_fmt(__fmt, __fbuf, sizeof __fbuf, &__fheap);
   __builtin_va_copy(__ap2, __ap);
   __r = __irix_libc_vsnprintf(__s, (long)__n, __fmt, __ap2);
   __builtin_va_end(__ap2);
-  if (__r < 0 || (__n > 0 && (size_t)__r < __n - 1))
-    return __r; /* it fit, with room to spare */
-
-  for (__size = __n > 64 ? 2 * __n : 128;; __size *= 2) {
-    char *__buf = (char *)__irix_libc_malloc(__size);
-    if (__buf == 0)
-      return -1;
-    __builtin_va_copy(__ap2, __ap);
-    __r = __irix_libc_vsnprintf(__buf, (long)__size, __fmt, __ap2);
-    __builtin_va_end(__ap2);
-    __irix_libc_free(__buf);
-    if (__r < 0 || (size_t)__r < __size - 1)
-      return __r;
+  if (!(__r >= 0 && __n > 0 && (size_t)__r < __n - 1)) {
+    /* It may not have fit -- or IRIX said -1, as it does for a size of 0
+     * (snprintf(NULL, 0, ...), C99's way to measure) and for some
+     * truncations: measure it in ever larger buffers, up to 64 MB. */
+    for (__size = __n > 64 ? 2 * __n : 128;; __size *= 2) {
+      char *__buf;
+      if (__size > (size_t)64 << 20) {
+        __r = -1;
+        break;
+      }
+      __buf = (char *)__irix_libc_malloc(__size);
+      if (__buf == 0) {
+        __r = -1;
+        break;
+      }
+      __builtin_va_copy(__ap2, __ap);
+      __r = __irix_libc_vsnprintf(__buf, (long)__size, __fmt, __ap2);
+      __builtin_va_end(__ap2);
+      __irix_libc_free(__buf);
+      if (__r >= 0 && (size_t)__r < __size - 1)
+        break;
+    }
   }
+  __irix_libc_free(__fheap);
+  return __r;
 }
 
 static __inline__ __attribute__((__format__(__printf__, 3, 4))) int

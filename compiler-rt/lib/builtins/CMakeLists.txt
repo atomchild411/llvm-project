@@ -241,6 +241,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "IRIX")
   set(GENERIC_SOURCES
     ${GENERIC_SOURCES}
     irix/libc_compat.c
+    irix/printf_c99.c
   )
 endif()
 
