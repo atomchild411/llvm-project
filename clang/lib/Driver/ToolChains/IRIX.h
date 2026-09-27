@@ -25,7 +25,10 @@ public:
 
   bool HasNativeLLVMSupport() const override { return true; }
   bool IsIntegratedAssemblerDefault() const override { return true; }
-  bool IsMathErrnoDefault() const override { return false; }
+  // IsMathErrnoDefault stays true: IRIX's libm sets errno (EDOM for
+  // sin(inf) or log(-1), ERANGE for exp(1000)), so its math functions may
+  // not be treated as having no side effects unless asked (-fno-math-errno,
+  // -ffast-math).
   RuntimeLibType GetDefaultRuntimeLibType() const override {
     return ToolChain::RLT_CompilerRT;
   }
