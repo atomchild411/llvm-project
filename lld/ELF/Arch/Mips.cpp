@@ -65,6 +65,13 @@ template <class ELFT> MIPS<ELFT>::MIPS(Ctx &ctx) : TargetInfo(ctx) {
     tlsModuleIndexRel = R_MIPS_TLS_DTPMOD32;
     tlsOffsetRel = R_MIPS_TLS_DTPREL32;
   }
+
+  // IRIX's rld will not take a shared object based at 0: use MIPSpro's
+  // bases for executables and shared objects.
+  if (ctx.arg.osabi == ELFOSABI_IRIX) {
+    defaultImageBase = 0x10000000;
+    defaultPicImageBase = 0x00400000;
+  }
 }
 
 template <class ELFT> uint32_t MIPS<ELFT>::calcEFlags() const {
@@ -186,6 +193,9 @@ RelExpr MIPS<ELFT>::getRelExpr(RelType type, const Symbol &s,
   case R_MIPS_TLS_LDM:
   case R_MICROMIPS_TLS_LDM:
     return RE_MIPS_TLSLD;
+  // IRIX objects (crt1.o) carry section-displacement relocations in their
+  // .MIPS.events sections, for tools; nothing to do at link time.
+  case R_MIPS_SCN_DISP:
   case R_MIPS_NONE:
     return R_NONE;
   default:
@@ -389,6 +399,7 @@ int64_t MIPS<ELFT>::getImplicitAddend(const uint8_t *buf, RelType type) const {
   case R_MIPS_TLS_DTPREL32:
   case R_MIPS_TLS_DTPMOD32:
   case R_MIPS_TLS_TPREL32:
+  case R_MIPS_SCN_DISP:
     return SignExtend64<32>(read32(ctx, buf));
   case R_MIPS_26:
     // FIXME (simon): If the relocation target symbol is not a PLT entry

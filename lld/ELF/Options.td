@@ -825,6 +825,17 @@ def: F<"warn-once">;
 def: F<"warn-shared-textrel">;
 def: JoinedOrSeparate<["-"], "G">;
 
+// MIPSpro ld's shared-object registry and version options, which libtool
+// passes on IRIX. Accepted and ignored.
+def: Separate<["-"], "set_version">;
+def: Joined<["-"], "set_version=">;
+def: Separate<["-"], "check_registry">;
+def: Joined<["-"], "check_registry=">;
+def: Separate<["-"], "update_registry">;
+def: Joined<["-"], "update_registry=">;
+def: Separate<["-"], "create_registry">;
+def: Joined<["-"], "create_registry=">;
+
 // Hidden option used for testing MIPS multi-GOT implementation.
 defm mips_got_size:
   Eq<"mips-got-size", "Max size of a single MIPS GOT. 0x10000 by default.">,

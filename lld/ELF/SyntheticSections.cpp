@@ -175,8 +175,8 @@ template <class ELFT> void MipsOptionsSection<ELFT>::writeTo(uint8_t *buf) {
 template <class ELFT>
 std::unique_ptr<MipsOptionsSection<ELFT>>
 MipsOptionsSection<ELFT>::create(Ctx &ctx) {
-  // N64 ABI only.
-  if (!ELFT::Is64Bits)
+  // N64 ABI only -- and n32 on IRIX, whose rld reads it there too.
+  if (!ELFT::Is64Bits && ctx.arg.osabi != ELFOSABI_IRIX)
     return nullptr;
 
   SmallVector<InputSectionBase *, 0> sections;
@@ -398,7 +398,11 @@ BssSection::BssSection(Ctx &ctx, StringRef name, uint64_t size,
 }
 
 EhFrameSection::EhFrameSection(Ctx &ctx)
-    : SyntheticSection(ctx, ".eh_frame", SHT_PROGBITS, SHF_ALLOC, 1) {}
+    : SyntheticSection(ctx, ".eh_frame", SHT_PROGBITS,
+                       // IRIX: absolute pointers, relocated in place by rld.
+                       ctx.arg.osabi == ELFOSABI_IRIX ? SHF_ALLOC | SHF_WRITE
+                                                      : SHF_ALLOC,
+                       1) {}
 
 // Search for an existing CIE record or create a new one.
 // CIE records from input object files are uniquified by their contents
@@ -1603,6 +1607,8 @@ DynamicSection<ELFT>::computeContents() {
       addInt(DT_MIPS_RLD_MAP_REL,
              ctx.in.mipsRldMap->getVA() - (getVA() + entries.size() * entsize));
     }
+    if (ctx.arg.osabi == ELFOSABI_IRIX && ctx.in.mipsOptions)
+      addInSec(DT_MIPS_OPTIONS, *ctx.in.mipsOptions);
   }
 
   // DT_PPC_GOT indicates to glibc Secure PLT is used. If DT_PPC_GOT is absent,
@@ -1751,8 +1757,45 @@ void DynamicReloc::computeRaw(Ctx &ctx, SymbolTableBaseSection *symt) {
   kind = AddendOnly; // Catch errors
 }
 
+// IRIX's rld ignores a relocation whose symbol index is 0 instead of
+// relocating it by the load address, so a relocation that would name no
+// symbol names the section symbol of its target's output section instead
+// (Writer::addSectionSymbols puts those in .dynsym). The word relocated keeps
+// its full link-time value, as rld expects for symbols the object defines:
+// it adds only the distance the object moved.
+void DynamicReloc::computeRawIRIX(Ctx &ctx, SymbolTableBaseSection *symt) {
+  r_offset = getOffset();
+  r_sym = getSymIndex(symt);
+  addend = computeAddend(ctx);
+  if (sym && r_sym == 0) {
+    Symbol *secSym = symt->getSectionSymbol(sym->getOutputSection());
+    if (!secSym) {
+      InternalErr(ctx, nullptr) << "no section symbol for relocation against "
+                                << sym;
+      return;
+    }
+    addend -= secSym->getVA(ctx);
+    sym = secSym;
+    kind = AgainstSymbolWithTargetVA;
+    r_sym = getSymIndex(symt);
+  }
+  // The kind stays: Writer::precomputeIRIXRelocs still needs it.
+}
+
 void RelocationBaseSection::computeRels() {
   SymbolTableBaseSection *symTab = getPartition(ctx).dynSymTab.get();
+
+  if (ctx.arg.osabi == ELFOSABI_IRIX) {
+    parallelForEach(relocs, [&ctx = ctx, symTab](DynamicReloc &rel) {
+      rel.computeRawIRIX(ctx, symTab);
+    });
+    // rld needs them ordered by symbol index.
+    llvm::stable_sort(relocs, [](const DynamicReloc &a, const DynamicReloc &b) {
+      return std::tie(a.r_sym, a.r_offset) < std::tie(b.r_sym, b.r_offset);
+    });
+    return;
+  }
+
   parallelForEach(relocs, [&ctx = ctx, symTab](DynamicReloc &rel) {
     rel.computeRaw(ctx, symTab);
   });
@@ -2206,6 +2249,16 @@ void SymbolTableBaseSection::finalizeContents() {
     sortMipsSymbols(ctx, symbols);
   }
 
+  // IRIX's .dynsym holds local section symbols; like any symbol table's
+  // locals, they go first, and sh_info points past them. The partition is
+  // stable, so the global GOT order sortMipsSymbols set is kept.
+  if (ctx.arg.osabi == ELFOSABI_IRIX) {
+    auto firstGlobal = std::stable_partition(
+        symbols.begin(), symbols.end(),
+        [](const SymbolTableEntry &s) { return s.sym->isLocal(); });
+    getParent()->info = (firstGlobal - symbols.begin()) + 1;
+  }
+
   // Only the main partition's dynsym indexes are stored in the symbols
   // themselves. All other partitions use a lookup table.
   if (this == ctx.mainPart->dynSymTab.get()) {
@@ -2246,9 +2299,20 @@ void SymbolTableBaseSection::sortSymTabSymbols() {
 }
 
 void SymbolTableBaseSection::addSymbol(Symbol *b) {
-  // Adding a local symbol to a .dynsym is a bug.
-  assert(this->type != SHT_DYNSYM || !b->isLocal());
+  // Adding a local symbol to a .dynsym is a bug -- except IRIX's section
+  // symbols, which its rld relocates against.
+  assert(this->type != SHT_DYNSYM || !b->isLocal() ||
+         (ctx.arg.osabi == ELFOSABI_IRIX && b->type == STT_SECTION));
   symbols.push_back({b, strTabSec.addString(b->getName(), false)});
+}
+
+Symbol *SymbolTableBaseSection::getSectionSymbol(const OutputSection *osec) {
+  llvm::call_once(sectionSymbolOnce, [&] {
+    for (const SymbolTableEntry &e : symbols)
+      if (e.sym->type == STT_SECTION)
+        sectionSymbols[e.sym->getOutputSection()] = e.sym;
+  });
+  return sectionSymbols.lookup(osec);
 }
 
 size_t SymbolTableBaseSection::getSymbolIndex(const Symbol &sym) {
@@ -2572,8 +2636,12 @@ void HashTableSection::finalizeContents() {
   unsigned numEntries = 2;               // nbucket and nchain.
   numEntries += symTab->getNumSymbols(); // The chain entries.
 
-  // Create as many buckets as there are symbols.
-  numEntries += symTab->getNumSymbols();
+  // Create as many buckets as there are symbols -- rounded up to a power of
+  // two on IRIX, which rld and dbx expect.
+  numBuckets = symTab->getNumSymbols();
+  if (ctx.arg.osabi == ELFOSABI_IRIX)
+    numBuckets = llvm::PowerOf2Ceil(numBuckets);
+  numEntries += numBuckets;
   this->size = numEntries * 4;
 }
 
@@ -2582,17 +2650,17 @@ void HashTableSection::writeTo(uint8_t *buf) {
   unsigned numSymbols = symTab->getNumSymbols();
 
   uint32_t *p = reinterpret_cast<uint32_t *>(buf);
-  write32(ctx, p++, numSymbols); // nbucket
+  write32(ctx, p++, numBuckets); // nbucket
   write32(ctx, p++, numSymbols); // nchain
 
   uint32_t *buckets = p;
-  uint32_t *chains = p + numSymbols;
+  uint32_t *chains = p + numBuckets;
 
   for (const SymbolTableEntry &s : symTab->getSymbols()) {
     Symbol *sym = s.sym;
     StringRef name = sym->getName();
     unsigned i = sym->dynsymIndex;
-    uint32_t hash = hashSysV(name) % numSymbols;
+    uint32_t hash = hashSysV(name) % numBuckets;
     chains[i] = buckets[hash];
     write32(ctx, buckets + hash, i);
   }

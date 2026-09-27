@@ -1611,8 +1611,12 @@ template <class ELFT> void SharedFile::parse() {
     // symbol, that's a violation of the spec.
     StringRef name = CHECK2(sym.getName(stringTable), this);
     if (sym.getBinding() == STB_LOCAL) {
-      Err(ctx) << this << ": invalid local symbol '" << name
-               << "' in global part of symbol table";
+      // MIPSpro-built shared objects -- every IRIX system library -- list
+      // their sections in .dynsym as local STT_SECTION symbols, which rld
+      // relocates against. Not ours to import; skip them quietly.
+      if (!(ctx.arg.osabi == ELFOSABI_IRIX && sym.getType() == STT_SECTION))
+        Err(ctx) << this << ": invalid local symbol '" << name
+                 << "' in global part of symbol table";
       continue;
     }
 

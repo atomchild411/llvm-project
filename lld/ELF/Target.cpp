@@ -169,5 +169,5 @@ uint64_t TargetInfo::getImageBase() const {
   // Use --image-base if set. Fall back to the target default if not.
   if (ctx.arg.imageBase)
     return *ctx.arg.imageBase;
-  return ctx.arg.isPic ? 0 : defaultImageBase;
+  return ctx.arg.isPic ? defaultPicImageBase : defaultImageBase;
 }

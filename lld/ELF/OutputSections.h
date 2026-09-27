@@ -119,6 +119,8 @@ public:
   void writeTo(Ctx &, uint8_t *buf, llvm::parallel::TaskGroup &tg);
   // Check that the addends for dynamic relocations were written correctly.
   void checkDynRelAddends(Ctx &);
+  // IRIX: write link-time values for relocations against defined symbols.
+  void precomputeIRIXRelocs(Ctx &);
   template <class ELFT> void maybeCompress(Ctx &);
 
   void sort(llvm::function_ref<int(InputSectionBase *s)> order);
