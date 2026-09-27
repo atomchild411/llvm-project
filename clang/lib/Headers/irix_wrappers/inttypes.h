@@ -9,13 +9,16 @@
  * IRIX's <inttypes.h> declares the fixed-width types but, before 6.5.22,
  * none of C99's PRI and SCN format macros. Add those it lacks, for the types
  * it declares: IRIX's int64_t and intmax_t are long long under n32 and long
- * under n64, and intptr_t is long under both.
+ * under n64, and intptr_t is long under both. Its integer constant macros
+ * (INT64_C and the rest) are casts: see __irix_int_c.h.
  */
 
 #ifndef __CLANG_IRIX_INTTYPES_H
 #define __CLANG_IRIX_INTTYPES_H
 
 #include_next <inttypes.h>
+
+#include <__irix_int_c.h>
 
 #if _MIPS_SZLONG == 64
 #define __IRIX_PRI64 "l"

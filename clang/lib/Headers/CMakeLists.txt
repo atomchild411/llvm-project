@@ -396,9 +396,11 @@ set(zos_wrapper_files
 )
 
 set(irix_wrapper_files
+  irix_wrappers/__irix_int_c.h
   irix_wrappers/ctype.h
   irix_wrappers/inttypes.h
   irix_wrappers/math.h
+  irix_wrappers/stdint.h
   irix_wrappers/stdio.h
   irix_wrappers/stdlib.h
   irix_wrappers/unistd.h
