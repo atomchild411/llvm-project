@@ -9,6 +9,11 @@
  * IRIX's <wchar.h> names its extra character classes _E1 to _E6, names C++
  * libraries use for template parameters (libc++'s expected<_T2, _E2>). For
  * C++, spell out the class masks built from them, and drop the names.
+ *
+ * Before 6.5.22 it also has only C89's wide-character functions. Declare
+ * C95's and C99's that C and C++ libraries use (the wmem* family, btowc and
+ * wctob, iswblank, the restartable conversions, wcstof and wcstold, swprintf
+ * and vswprintf, fwide), which compiler-rt's builtins define.
  */
 
 #ifndef __CLANG_IRIX_WCHAR_H
@@ -40,5 +45,36 @@
 #undef _E5
 #undef _E6
 #endif
+
+#if __IRIX_VERSION__ < 60522
+/* Defined in compiler-rt's builtins (irix/libc_compat.c), which every IRIX
+ * link takes. */
+#ifdef __cplusplus
+extern "C" {
+#endif
+wchar_t *wmemchr(const wchar_t *, wchar_t, size_t);
+int wmemcmp(const wchar_t *, const wchar_t *, size_t);
+wchar_t *wmemcpy(wchar_t *, const wchar_t *, size_t);
+wchar_t *wmemmove(wchar_t *, const wchar_t *, size_t);
+wchar_t *wmemset(wchar_t *, wchar_t, size_t);
+wint_t btowc(int);
+int wctob(wint_t);
+int iswblank(wint_t);
+int mbsinit(const mbstate_t *);
+size_t mbrtowc(wchar_t *, const char *, size_t, mbstate_t *);
+size_t mbrlen(const char *, size_t, mbstate_t *);
+size_t wcrtomb(char *, wchar_t, mbstate_t *);
+size_t mbsrtowcs(wchar_t *, const char **, size_t, mbstate_t *);
+size_t wcsrtombs(char *, const wchar_t **, size_t, mbstate_t *);
+float wcstof(const wchar_t *__restrict, wchar_t **__restrict);
+long double wcstold(const wchar_t *__restrict, wchar_t **__restrict);
+int vswprintf(wchar_t *__restrict, size_t, const wchar_t *__restrict,
+              __builtin_va_list);
+int swprintf(wchar_t *__restrict, size_t, const wchar_t *__restrict, ...);
+int fwide(FILE *, int);
+#ifdef __cplusplus
+}
+#endif
+#endif /* __IRIX_VERSION__ < 60522 */
 
 #endif /* __CLANG_IRIX_WCHAR_H */

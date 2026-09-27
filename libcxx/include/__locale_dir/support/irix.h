@@ -19,6 +19,7 @@
 #include <__config>
 #include <__cstddef/size_t.h>
 #include <__utility/forward.h>
+#include <climits>
 #include <clocale>
 #include <cstdarg>
 #include <cstdio>

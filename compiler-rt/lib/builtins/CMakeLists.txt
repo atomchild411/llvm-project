@@ -236,6 +236,14 @@ option(COMPILER_RT_EXCLUDE_LIBC_PROVIDED_ARM_AEABI_BUILTINS
   "Skip the standard C library provided arm aeabi builtins from compiler-rt)"
   Off)
 
+# C95/C99 library functions IRIX's libc lacks before 6.5.22 (see the file).
+if(CMAKE_SYSTEM_NAME STREQUAL "IRIX")
+  set(GENERIC_SOURCES
+    ${GENERIC_SOURCES}
+    irix/libc_compat.c
+  )
+endif()
+
 if(NOT FUCHSIA AND NOT COMPILER_RT_BAREMETAL_BUILD AND NOT COMPILER_RT_GPU_BUILD)
   set(GENERIC_SOURCES
     ${GENERIC_SOURCES}
