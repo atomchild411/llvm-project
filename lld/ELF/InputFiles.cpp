@@ -1823,6 +1823,11 @@ BitcodeFile::BitcodeFile(Ctx &ctx, MemoryBufferRef mb, StringRef archiveName,
 
   Triple t(obj->getTargetTriple());
   ekind = getBitcodeELFKind(t);
+  // IRIX: a 64-bit MIPS triple is compiled for n32 (ELF32) or n64, which the
+  // triple does not say; the driver says it with the emulation instead.
+  if (t.isOSIRIX() && t.isMIPS64() && ctx.arg.osabi == ELFOSABI_IRIX &&
+      ctx.arg.ekind != ELFNoneKind)
+    ekind = ctx.arg.ekind;
   emachine = getBitcodeMachineKind(ctx, mb.getBufferIdentifier(), t);
   osabi = getOsAbi(t);
 }
