@@ -912,8 +912,8 @@ void OutputSection::precomputeIRIXRelocs(Ctx &ctx) {
       const OutputSection *relOsec = rel.inputSec->getOutputSection();
       if (!relOsec || relOsec->type == SHT_NOBITS)
         continue;
-      uint8_t *loc = ctx.bufferStart + relOsec->offset +
-                     rel.inputSec->getOffset(rel.offsetInSec);
+      uint8_t *loc =
+          ctx.bufferStart + relOsec->offset + (rel.getOffset() - relOsec->addr);
       if (rel.type == R_MIPS_REL32)
         write32(ctx, loc, rel.sym->getVA(ctx, read32(ctx, loc)));
       else if (rel.type == ((R_MIPS_64 << 8) | R_MIPS_REL32))
@@ -952,8 +952,9 @@ void OutputSection::checkDynRelAddends(Ctx &ctx) {
           (rel.inputSec == ctx.in.ppc64LongBranchTarget.get() ||
            rel.inputSec == ctx.in.igotPlt.get()))
         continue;
-      const uint8_t *relocTarget = ctx.bufferStart + relOsec->offset +
-                                   rel.inputSec->getOffset(rel.offsetInSec);
+      // getOffset() rather than the input section's: see it for .eh_frame.
+      const uint8_t *relocTarget =
+          ctx.bufferStart + relOsec->offset + (rel.getOffset() - relOsec->addr);
       // For SHT_NOBITS the written addend is always zero.
       int64_t writtenAddend =
           relOsec->type == SHT_NOBITS

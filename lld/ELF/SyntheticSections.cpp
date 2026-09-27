@@ -1648,6 +1648,13 @@ template <class ELFT> void DynamicSection<ELFT>::writeTo(uint8_t *buf) {
 }
 
 uint64_t DynamicReloc::getOffset() const {
+  // The relocation scanner gives .eh_frame relocations offsets in the output
+  // .eh_frame already (see OffsetGetter), which getVA would map again, as
+  // input offsets. Only IRIX puts dynamic relocations there: its .eh_frame is
+  // writable, and holds absolute pointers.
+  if (auto *eh = dyn_cast<EhInputSection>(inputSec))
+    if (InputSection *parent = eh->getParent())
+      return parent->getVA(offsetInSec);
   return inputSec->getVA(offsetInSec);
 }
 
