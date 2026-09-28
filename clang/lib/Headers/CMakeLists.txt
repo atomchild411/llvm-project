@@ -426,6 +426,7 @@ set(irix_wrapper_internal_files
 
 # Installed under irix_wrappers/sys/.
 set(irix_wrapper_sys_files
+  irix_wrappers/sys/mman.h
   irix_wrappers/sys/select.h
   irix_wrappers/sys/socket.h
   irix_wrappers/sys/types.h
