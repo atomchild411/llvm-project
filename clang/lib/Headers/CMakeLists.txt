@@ -406,6 +406,7 @@ set(irix_wrapper_files
   irix_wrappers/stdlib.h
   irix_wrappers/string.h
   irix_wrappers/unistd.h
+  irix_wrappers/uuid.h
   irix_wrappers/wchar.h
 )
 
