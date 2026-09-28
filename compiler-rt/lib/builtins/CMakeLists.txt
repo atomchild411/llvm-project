@@ -243,6 +243,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "IRIX")
     irix/libc_compat.c
     irix/printf_c99.c
     irix/strtof.c
+    irix/progname.c
     irix/fenv.c
   )
 endif()

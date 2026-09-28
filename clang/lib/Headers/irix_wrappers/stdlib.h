@@ -22,6 +22,9 @@ extern "C" {
 #endif
 void abort(void) __attribute__((__noreturn__));
 void exit(int) __attribute__((__noreturn__));
+/* BSD's, which IRIX's libc lacks: compiler-rt's irix/progname.c. */
+const char *getprogname(void);
+void setprogname(const char *);
 #ifdef __cplusplus
 }
 #endif
