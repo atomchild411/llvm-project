@@ -26,6 +26,11 @@
  * declared here in every mode: IRIX's declarations are renamed out of the way
  * while its header is read, and sendmsg and recvmsg are bound to IRIX's X/Open
  * entry points, which pass descriptors with SCM_RIGHTS (recvmsg through
+ * getsockname and getpeername: for an unnamed AF_UNIX socket (either end
+ * of a socketpair) IRIX succeeds with a length of 0 and no family; Linux
+ * and the BSDs return the family alone, and GLib's GSocket needs it. On n32
+ * both are bound to compiler-rt's irix/socket.c, which reports AF_UNIX then.
+ *
  * compiler-rt's irix/socket.c, which clears a bit IRIX's kernel leaves in
  * msg_flags that no MSG_ flag names). CMSG_SPACE, CMSG_LEN
  * and SCM_RIGHTS are defined where IRIX hides them.
@@ -37,10 +42,14 @@
 #define msghdr __irix_bsd43_msghdr
 #define sendmsg __irix_bsd43_sendmsg
 #define recvmsg __irix_bsd43_recvmsg
+#define getsockname __irix_libc_getsockname
+#define getpeername __irix_libc_getpeername
 #include_next <sys/socket.h>
 #undef msghdr
 #undef sendmsg
 #undef recvmsg
+#undef getsockname
+#undef getpeername
 #undef msg_control
 #undef msg_controllen
 
@@ -79,6 +88,20 @@ ssize_t recvmsg(int, struct msghdr *, int) __asm__("__irix_recvmsg");
 typedef int socklen_t;
 #else
 typedef size_t socklen_t;
+#endif
+#endif
+
+#if _MIPS_SZLONG == 32
+/* socklen_t is int or size_t here, 32 bits either way. */
+#ifdef __cplusplus
+extern "C" {
+#endif
+int getsockname(int, struct sockaddr *__restrict, socklen_t *__restrict)
+    __asm__("__irix_getsockname");
+int getpeername(int, struct sockaddr *__restrict, socklen_t *__restrict)
+    __asm__("__irix_getpeername");
+#ifdef __cplusplus
+}
 #endif
 #endif
 
