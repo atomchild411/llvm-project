@@ -39,4 +39,9 @@ void *mmap64(void *, size_t, int, int, int, long long) __asm__("__irix_mmap64");
 #endif
 #endif
 
+/* The BSDs' (and Linux's) no-op flag for file mappings. */
+#ifndef MAP_FILE
+#define MAP_FILE 0
+#endif
+
 #endif /* __CLANG_IRIX_SYS_MMAN_H */

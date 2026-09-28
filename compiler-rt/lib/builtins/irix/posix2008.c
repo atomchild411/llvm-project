@@ -13,7 +13,7 @@
 //   <string.h>  strndup stpcpy stpncpy strsep strcasestr explicit_bzero
 //               strerror_r (the POSIX one, returning int)
 //   <stdio.h>   getline getdelim dprintf vdprintf asprintf vasprintf
-//   <stdlib.h>  posix_memalign aligned_alloc reallocarray
+//   <stdlib.h>  posix_memalign aligned_alloc reallocarray mkostemp
 //   <time.h>    timegm
 //   <dirent.h>  dirfd
 //
@@ -30,6 +30,7 @@
 #include <ctype.h>
 #include <dirent.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -249,6 +250,28 @@ void *aligned_alloc(size_t align, size_t size) {
   if (align < sizeof(void *))
     align = sizeof(void *);
   return memalign(align, size ? size : 1);
+}
+
+// mkstemp, then the flags: O_CLOEXEC (the <fcntl.h> wrapper's) as FD_CLOEXEC,
+// the rest (O_APPEND, O_SYNC, ...) through F_SETFL.
+int mkostemp(char *tmpl, int flags) {
+  int fd = mkstemp(tmpl);
+  if (fd < 0)
+    return -1;
+#ifdef __IRIX_O_CLOEXEC
+  if (flags & __IRIX_O_CLOEXEC) {
+    fcntl(fd, F_SETFD, FD_CLOEXEC);
+    flags &= ~__IRIX_O_CLOEXEC;
+  }
+#endif
+  if (flags && fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | flags) < 0) {
+    int e = errno;
+    close(fd);
+    unlink(tmpl);
+    errno = e;
+    return -1;
+  }
+  return fd;
 }
 
 void *reallocarray(void *p, size_t n, size_t size) {
