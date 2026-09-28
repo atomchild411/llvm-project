@@ -1774,11 +1774,17 @@ void DynamicReloc::computeRawIRIX(Ctx &ctx, SymbolTableBaseSection *symt) {
   r_offset = getOffset();
   r_sym = getSymIndex(symt);
   addend = computeAddend(ctx);
-  if (sym && r_sym == 0) {
-    Symbol *secSym = symt->getSectionSymbol(sym->getOutputSection());
+  // A page entry of a secondary (multi-)GOT names no symbol, only the output
+  // section whose page it holds.
+  const OutputSection *osec = kind == MipsMultiGotPage ? outputSec
+                              : sym && r_sym == 0      ? sym->getOutputSection()
+                                                       : nullptr;
+  if (osec) {
+    Symbol *secSym = symt->getSectionSymbol(osec);
     if (!secSym) {
-      InternalErr(ctx, nullptr) << "no section symbol for relocation against "
-                                << sym;
+      InternalErr(ctx, nullptr)
+          << "no section symbol for relocation against "
+          << (sym ? toStr(ctx, *sym) : osec->name.str());
       return;
     }
     addend -= secSym->getVA(ctx);
