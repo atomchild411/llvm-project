@@ -16,12 +16,62 @@
  * any family; no IRIX release declares it (OpenSSL, among many, uses it with
  * or without IPv6). IRIX's struct sockaddr starts with a 16-bit sa_family_t
  * and has no length byte, so ss_family sits where sa_family does.
+ *
+ * struct msghdr: IRIX's own API (_SGIAPI, the default) gives BSD 4.3's, whose
+ * msg_control is a #define for msg_accrights (a plain array of descriptors)
+ * and which has no msg_flags; the POSIX one, with control messages
+ * (cmsghdr, SCM_RIGHTS), is IRIX's X/Open msghdr, which only a strict X/Open
+ * compilation sees, through __xpg4_sendmsg and __xpg4_recvmsg. Code written
+ * since (GLib's GIO, OpenSSH, tmux) wants the POSIX one, so it is the one
+ * declared here in every mode: IRIX's declarations are renamed out of the way
+ * while its header is read, and sendmsg and recvmsg are bound to IRIX's X/Open
+ * entry points, which pass descriptors with SCM_RIGHTS (recvmsg through
+ * compiler-rt's irix/socket.c, which clears a bit IRIX's kernel leaves in
+ * msg_flags that no MSG_ flag names). CMSG_SPACE, CMSG_LEN
+ * and SCM_RIGHTS are defined where IRIX hides them.
  */
 
 #ifndef __CLANG_IRIX_SYS_SOCKET_H
 #define __CLANG_IRIX_SYS_SOCKET_H
 
+#define msghdr __irix_bsd43_msghdr
+#define sendmsg __irix_bsd43_sendmsg
+#define recvmsg __irix_bsd43_recvmsg
 #include_next <sys/socket.h>
+#undef msghdr
+#undef sendmsg
+#undef recvmsg
+#undef msg_control
+#undef msg_controllen
+
+struct msghdr {
+  void *msg_name;
+  size_t msg_namelen;
+  struct iovec *msg_iov;
+  int msg_iovlen;
+  void *msg_control;
+  size_t msg_controllen;
+  int msg_flags;
+};
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+ssize_t sendmsg(int, const struct msghdr *, int) __asm__("__xpg4_sendmsg");
+ssize_t recvmsg(int, struct msghdr *, int) __asm__("__irix_recvmsg");
+#ifdef __cplusplus
+}
+#endif
+
+#ifndef CMSG_LEN
+/* As IRIX's own (under INET6): no padding. Its kernel refuses a control
+ * buffer longer than the messages in it (EINVAL). */
+#define CMSG_LEN(length) (sizeof(struct cmsghdr) + (length))
+#define CMSG_SPACE(length) (sizeof(struct cmsghdr) + (length))
+#endif
+#ifndef SCM_RIGHTS
+#define SCM_RIGHTS 0x01
+#endif
 
 #ifndef _SOCKLEN_T
 #define _SOCKLEN_T

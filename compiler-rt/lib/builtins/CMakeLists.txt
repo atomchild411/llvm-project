@@ -251,6 +251,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "IRIX")
     irix/cloexec.c
     irix/pthread_np.c
     irix/netdb.c
+    irix/socket.c
     irix/fenv.c
   )
 endif()
