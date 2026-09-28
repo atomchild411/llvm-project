@@ -19,10 +19,16 @@
 
 #include_next <sys/mman.h>
 
-#if !defined(MAP_ANON) && !defined(MAP_ANONYMOUS)
-#define MAP_ANON 0x40000000
-#define MAP_ANONYMOUS MAP_ANON
-#define __IRIX_MAP_ANON MAP_ANON
+/* Code that defines MAP_ANONYMOUS as MAP_ANON (or the reverse) before
+ * including this header gets the same bit. */
+#ifndef __IRIX_MAP_ANON
+#define __IRIX_MAP_ANON 0x40000000
+#ifndef MAP_ANON
+#define MAP_ANON __IRIX_MAP_ANON
+#endif
+#ifndef MAP_ANONYMOUS
+#define MAP_ANONYMOUS __IRIX_MAP_ANON
+#endif
 #ifdef __cplusplus
 extern "C" {
 #endif
