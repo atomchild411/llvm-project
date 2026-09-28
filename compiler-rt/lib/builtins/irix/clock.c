@@ -16,6 +16,9 @@
 // 497 days. Its steps are 10 ms. CLOCK_SGI_CYCLE is finer but wraps -- every
 // 43 seconds on an Indigo2 R10000 -- so it cannot serve alone.
 //
+// CLOCK_PROCESS_CPUTIME_ID, which IRIX also lacks, is the user and system
+// time times() reports for the process, in the same steps.
+//
 // Its own file, so a program is only given these when it asks for them.
 //
 //===----------------------------------------------------------------------===//
@@ -34,8 +37,8 @@ extern int __irix_libc_clock_gettime(clockid_t, struct timespec *)
 extern int __irix_libc_clock_getres(clockid_t, struct timespec *)
     __asm__("clock_getres");
 
-#ifndef __IRIX_CLOCK_MONOTONIC
-#error "clang's IRIX <time.h> wrapper defines __IRIX_CLOCK_MONOTONIC"
+#if !defined(__IRIX_CLOCK_MONOTONIC) || !defined(__IRIX_CLOCK_PROCESS_CPUTIME_ID)
+#error "clang's IRIX <time.h> wrapper defines the __IRIX_CLOCK_ ids"
 #endif
 
 static long ticks_per_second(void) {
@@ -49,7 +52,7 @@ static long ticks_per_second(void) {
 }
 
 int __irix_clock_gettime(clockid_t id, struct timespec *ts) {
-  if (id == __IRIX_CLOCK_MONOTONIC) {
+  if (id == __IRIX_CLOCK_MONOTONIC || id == __IRIX_CLOCK_PROCESS_CPUTIME_ID) {
     struct tms t;
     unsigned long ticks = (unsigned long)times(&t);
     long hz = ticks_per_second();
@@ -57,6 +60,8 @@ int __irix_clock_gettime(clockid_t id, struct timespec *ts) {
       errno = EFAULT;
       return -1;
     }
+    if (id == __IRIX_CLOCK_PROCESS_CPUTIME_ID)
+      ticks = (unsigned long)t.tms_utime + (unsigned long)t.tms_stime;
     ts->tv_sec = (time_t)(ticks / (unsigned long)hz);
     ts->tv_nsec = (long)(ticks % (unsigned long)hz) * (1000000000L / hz);
     return 0;
@@ -65,7 +70,7 @@ int __irix_clock_gettime(clockid_t id, struct timespec *ts) {
 }
 
 int __irix_clock_getres(clockid_t id, struct timespec *ts) {
-  if (id == __IRIX_CLOCK_MONOTONIC) {
+  if (id == __IRIX_CLOCK_MONOTONIC || id == __IRIX_CLOCK_PROCESS_CPUTIME_ID) {
     if (ts) {
       ts->tv_sec = 0;
       ts->tv_nsec = 1000000000L / ticks_per_second();

@@ -13,6 +13,10 @@
  * routed to compiler-rt's IRIX builtins (irix/clock.c), which serve
  * CLOCK_MONOTONIC from times(), the clock ticks since boot (10 ms steps),
  * and hand every other clock to IRIX's own functions.
+ *
+ * CLOCK_PROCESS_CPUTIME_ID, also missing, likewise: the process's user and
+ * system time from times(), in the same 10 ms steps. There is no
+ * CLOCK_THREAD_CPUTIME_ID: IRIX keeps no CPU time per pthread.
  */
 
 #ifndef __CLANG_IRIX_TIME_H
@@ -20,10 +24,17 @@
 
 #include_next <time.h>
 
+/* Ids IRIX does not use (its are 1 to 3). */
 #ifndef CLOCK_MONOTONIC
-/* An id IRIX does not use (its are 1 to 3). */
 #define CLOCK_MONOTONIC 0x7f01
 #define __IRIX_CLOCK_MONOTONIC CLOCK_MONOTONIC
+#endif
+#ifndef CLOCK_PROCESS_CPUTIME_ID
+#define CLOCK_PROCESS_CPUTIME_ID 0x7f02
+#define __IRIX_CLOCK_PROCESS_CPUTIME_ID CLOCK_PROCESS_CPUTIME_ID
+#endif
+
+#if defined(__IRIX_CLOCK_MONOTONIC) || defined(__IRIX_CLOCK_PROCESS_CPUTIME_ID)
 struct timespec;
 #ifdef __cplusplus
 extern "C" {
