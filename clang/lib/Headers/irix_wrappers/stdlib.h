@@ -34,6 +34,8 @@ void setprogname(const char *);
 /* POSIX 2001's, which IRIX's libc lacks: compiler-rt's irix/env.c. */
 int setenv(const char *, const char *, int);
 int unsetenv(const char *);
+/* POSIX 2008's, from irix/misc.c. */
+char *mkdtemp(char *);
 #ifdef __cplusplus
 }
 #endif

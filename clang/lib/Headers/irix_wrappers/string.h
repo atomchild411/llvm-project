@@ -30,6 +30,8 @@ size_t strnlen(const char *, size_t);
 extern "C" {
 #endif
 char *strsignal(int);
+/* POSIX 2024's (and every other libc's), from irix/misc.c. */
+void *memmem(const void *, size_t, const void *, size_t);
 #ifdef __cplusplus
 }
 #endif

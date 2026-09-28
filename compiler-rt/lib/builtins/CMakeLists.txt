@@ -252,6 +252,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "IRIX")
     irix/pthread_np.c
     irix/netdb.c
     irix/socket.c
+    irix/misc.c
     irix/fenv.c
   )
 endif()
