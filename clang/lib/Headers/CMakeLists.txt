@@ -404,6 +404,7 @@ set(irix_wrapper_files
   irix_wrappers/inttypes.h
   irix_wrappers/locale.h
   irix_wrappers/math.h
+  irix_wrappers/pthread.h
   irix_wrappers/stdint.h
   irix_wrappers/stdio.h
   irix_wrappers/stdlib.h
