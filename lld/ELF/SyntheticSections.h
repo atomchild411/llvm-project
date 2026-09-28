@@ -553,8 +553,11 @@ public:
     return !relocs.empty() ||
            llvm::any_of(relocsVec, [](auto &v) { return !v.empty(); });
   }
-  size_t getSize() const override { return relocs.size() * this->entsize; }
+  size_t getSize() const override {
+    return (relocs.size() + hasNullHead()) * this->entsize;
+  }
   size_t getRelativeRelocCount() const { return numRelativeRelocs; }
+  bool hasNullHead() const;
   void mergeRels();
   void partitionRels();
   void finalizeContents() override;

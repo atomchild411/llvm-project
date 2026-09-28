@@ -1789,6 +1789,15 @@ void DynamicReloc::computeRawIRIX(Ctx &ctx, SymbolTableBaseSection *symt) {
   // The kind stays: Writer::precomputeIRIXRelocs still needs it.
 }
 
+// The MIPS ABI starts the dynamic relocation table with a null entry, and
+// IRIX's rld skips the first entry unread: without one, the first real
+// relocation is never applied, and a shared object that rld moves keeps that
+// word at its link-time value.
+bool RelocationBaseSection::hasNullHead() const {
+  return ctx.arg.osabi == ELFOSABI_IRIX && this != ctx.in.relaPlt.get() &&
+         !relocs.empty();
+}
+
 void RelocationBaseSection::computeRels() {
   SymbolTableBaseSection *symTab = getPartition(ctx).dynSymTab.get();
 
@@ -1837,6 +1846,10 @@ RelocationSection<ELFT>::RelocationSection(Ctx &ctx, StringRef name,
 
 template <class ELFT> void RelocationSection<ELFT>::writeTo(uint8_t *buf) {
   computeRels();
+  if (hasNullHead()) {
+    memset(buf, 0, this->entsize); // R_MIPS_NONE against symbol 0
+    buf += this->entsize;
+  }
   for (const DynamicReloc &rel : relocs) {
     auto *p = reinterpret_cast<Elf_Rela *>(buf);
     p->r_offset = rel.r_offset;
