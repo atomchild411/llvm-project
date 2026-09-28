@@ -19,13 +19,19 @@
  *
  * strtoimax, strtoumax and imaxabs: IRIX declares the first two only in its
  * own API mode, and no IRIX library defines any of them; compiler-rt's
- * builtins do (irix/libc_compat.c). Declare them in every C99 mode.
+ * builtins do (irix/libc_compat.c). Declare them in every C99 mode. IRIX's
+ * declarations have no extern "C", so in C++ they would give the functions
+ * C++ linkage: they are renamed out of the way while its header is read.
  */
 
 #ifndef __CLANG_IRIX_INTTYPES_H
 #define __CLANG_IRIX_INTTYPES_H
 
+#define strtoimax __irix_unused_strtoimax
+#define strtoumax __irix_unused_strtoumax
 #include_next <inttypes.h>
+#undef strtoimax
+#undef strtoumax
 
 #ifdef __c99
 #include <stdint.h>
