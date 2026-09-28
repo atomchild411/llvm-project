@@ -31,6 +31,9 @@ void exit(int) __attribute__((__noreturn__));
 /* BSD's, which IRIX's libc lacks: compiler-rt's irix/progname.c. */
 const char *getprogname(void);
 void setprogname(const char *);
+/* POSIX 2001's, which IRIX's libc lacks: compiler-rt's irix/env.c. */
+int setenv(const char *, const char *, int);
+int unsetenv(const char *);
 #ifdef __cplusplus
 }
 #endif
