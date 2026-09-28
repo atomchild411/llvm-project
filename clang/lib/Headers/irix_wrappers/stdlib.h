@@ -10,6 +10,12 @@
  * ending in either reads as falling off the end of a function. Say so.
  *
  * Before 6.5.22 it also lacks C99's strtof: see below.
+ *
+ * C99's long long functions (atoll, strtoll, strtoull, llabs, lldiv, and
+ * lldiv_t) are in IRIX's libc, but its <stdlib.h> declares them only for
+ * its own API (_SGIAPI or _ABIAPI, outside ANSI mode): a program that
+ * defines _XOPEN_SOURCE (ICU does) loses them, and libc++'s <stdlib.h>
+ * needs lldiv_t. In C99 modes and C++, declare them whenever IRIX did not.
  */
 
 #ifndef __CLANG_IRIX_STDLIB_H
@@ -40,6 +46,24 @@ extern "C" float strtof(const char *__restrict, char **__restrict)
 #else
 extern float strtof(const char *__restrict, char **__restrict)
     __asm__("__irix_strtof");
+#endif
+#endif
+
+#if defined(__c99) && !((_SGIAPI || _ABIAPI) && _NO_ANSIMODE)
+typedef struct {
+  long long quot;
+  long long rem;
+} lldiv_t;
+#ifdef __cplusplus
+extern "C" {
+#endif
+long long atoll(const char *);
+long long strtoll(const char *__restrict, char **__restrict, int);
+unsigned long long strtoull(const char *__restrict, char **__restrict, int);
+long long llabs(long long);
+lldiv_t lldiv(long long, long long);
+#ifdef __cplusplus
+}
 #endif
 #endif
 
