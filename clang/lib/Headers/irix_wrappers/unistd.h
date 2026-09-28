@@ -12,7 +12,17 @@
 #ifndef __CLANG_IRIX_UNISTD_H
 #define __CLANG_IRIX_UNISTD_H
 
+/* IRIX's <unistd.h> includes <getopt.h>: tell the <getopt.h> wrapper, so that
+ * getopt_long and struct option are only declared for a direct include. */
+#ifndef __IRIX_GETOPT_INDIRECT
+#define __IRIX_GETOPT_INDIRECT
+#define __IRIX_GETOPT_INDIRECT_UNISTD
+#endif
 #include_next <unistd.h>
+#ifdef __IRIX_GETOPT_INDIRECT_UNISTD
+#undef __IRIX_GETOPT_INDIRECT
+#undef __IRIX_GETOPT_INDIRECT_UNISTD
+#endif
 
 #ifdef __cplusplus
 extern "C" {

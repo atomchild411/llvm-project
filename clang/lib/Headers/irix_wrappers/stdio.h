@@ -33,7 +33,17 @@
 #define __need_va_list
 #include <stdarg.h>
 
+/* IRIX's <stdio.h> includes <getopt.h>: tell the <getopt.h> wrapper, so that
+ * getopt_long and struct option are only declared for a direct include. */
+#ifndef __IRIX_GETOPT_INDIRECT
+#define __IRIX_GETOPT_INDIRECT
+#define __IRIX_GETOPT_INDIRECT_STDIO
+#endif
 #include_next <stdio.h>
+#ifdef __IRIX_GETOPT_INDIRECT_STDIO
+#undef __IRIX_GETOPT_INDIRECT
+#undef __IRIX_GETOPT_INDIRECT_STDIO
+#endif
 
 #ifdef __cplusplus
 extern "C" {

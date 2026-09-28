@@ -254,6 +254,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "IRIX")
     irix/socket.c
     irix/misc.c
     irix/spawn.c
+    irix/getopt_long.c
     irix/fenv.c
   )
 endif()

@@ -21,7 +21,17 @@
 #ifndef __CLANG_IRIX_STDLIB_H
 #define __CLANG_IRIX_STDLIB_H
 
+/* IRIX's <stdlib.h> includes <getopt.h>: tell the <getopt.h> wrapper, so that
+ * getopt_long and struct option are only declared for a direct include. */
+#ifndef __IRIX_GETOPT_INDIRECT
+#define __IRIX_GETOPT_INDIRECT
+#define __IRIX_GETOPT_INDIRECT_STDLIB
+#endif
 #include_next <stdlib.h>
+#ifdef __IRIX_GETOPT_INDIRECT_STDLIB
+#undef __IRIX_GETOPT_INDIRECT
+#undef __IRIX_GETOPT_INDIRECT_STDLIB
+#endif
 
 #ifdef __cplusplus
 extern "C" {
