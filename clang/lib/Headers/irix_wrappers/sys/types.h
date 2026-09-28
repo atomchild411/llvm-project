@@ -11,6 +11,9 @@
  * never does, though tv_usec is a long in both. Code written since assumes
  * it (libXt). Define it wherever the system header has not: everywhere but
  * a 6.5.22 root (known by its <internal/wchar_core.h>) in XPG5 mode.
+ *
+ * blksize_t, the type of struct stat's st_blksize (a long on IRIX): no IRIX
+ * release defines it. Code written since uses it (GLib's GIO).
  */
 
 #ifndef __CLANG_IRIX_SYS_TYPES_H
@@ -20,6 +23,11 @@
 
 #if !_XOPEN5 || !__has_include(<internal/wchar_core.h>)
 typedef long suseconds_t;
+#endif
+
+#ifndef __CLANG_IRIX_BLKSIZE_T
+#define __CLANG_IRIX_BLKSIZE_T
+typedef long blksize_t;
 #endif
 
 #endif /* __CLANG_IRIX_SYS_TYPES_H */
