@@ -472,7 +472,14 @@ protected:
       Builder.defineMacro("host_mips");
     }
 
-    if (Opts.CPlusPlus) {
+    if (Opts.AsmPreprocessor) {
+      // Assembly (.S): SGI's headers keep their C declarations out of it
+      // behind _LANGUAGE_C, and give it what it may use under
+      // _LANGUAGE_ASSEMBLY, as MIPSpro's and IRIX gcc's drivers defined.
+      Builder.defineMacro("_LANGUAGE_ASSEMBLY");
+      if (Opts.GNUMode)
+        Builder.defineMacro("LANGUAGE_ASSEMBLY");
+    } else if (Opts.CPlusPlus) {
       Builder.defineMacro("_LANGUAGE_C_PLUS_PLUS", "1");
       // wchar_t is built in: the guard SGI's headers check before declaring
       // their own (a C typedef, illegal in C++).
