@@ -13,7 +13,9 @@
  * that does not exist (libintl ended up needing a symbol `assert`). This
  * wrapper has no guard: it lets IRIX's header declare what it declares, then
  * defines assert itself every time, calling IRIX libc's __assert as IRIX's
- * own macro does. It also gives C11 its static_assert spelling.
+ * own macro does, declared noreturn (IRIX's prints and calls abort) so that
+ * assert(0) at the end of a function ends that path. It also gives C11
+ * its static_assert spelling.
  */
 
 #include_next <assert.h>
@@ -23,9 +25,11 @@
 #define assert(e) ((void)0)
 #else
 #ifdef __cplusplus
-extern "C" void __assert(const char *, const char *, int);
+extern "C" void __assert(const char *, const char *, int)
+    __attribute__((__noreturn__));
 #else
-extern void __assert(const char *, const char *, int);
+extern void __assert(const char *, const char *, int)
+    __attribute__((__noreturn__));
 #endif
 #define assert(e) ((e) ? (void)0 : __assert(#e, __FILE__, __LINE__))
 #endif
