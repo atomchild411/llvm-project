@@ -244,6 +244,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "IRIX")
     irix/printf_c99.c
     irix/strtof.c
     irix/progname.c
+    irix/strsignal.c
     irix/fenv.c
   )
 endif()

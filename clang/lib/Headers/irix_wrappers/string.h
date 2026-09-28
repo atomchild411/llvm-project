@@ -6,8 +6,9 @@
  *
  *===-----------------------------------------------------------------------===
  *
- * IRIX before 6.5.22 has no strnlen (POSIX 2008). Declare it; compiler-rt's
- * builtins, which every IRIX link takes, define it (irix/libc_compat.c).
+ * IRIX before 6.5.22 has no strnlen (POSIX 2008), and no IRIX has
+ * strsignal. Declare them; compiler-rt's builtins, which every IRIX link
+ * takes, define them (irix/libc_compat.c, irix/strsignal.c).
  */
 
 #ifndef __CLANG_IRIX_STRING_H
@@ -23,6 +24,14 @@ size_t strnlen(const char *, size_t);
 #ifdef __cplusplus
 }
 #endif
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+char *strsignal(int);
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* __CLANG_IRIX_STRING_H */
