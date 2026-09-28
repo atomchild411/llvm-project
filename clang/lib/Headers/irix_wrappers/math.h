@@ -101,6 +101,9 @@ float fabsf(float);
 int ilogbf(float);
 float logbf(float);
 float nextafterf(float, float);
+/* C23, from irix/math_c99.c. */
+double roundeven(double);
+float roundevenf(float);
 #ifdef __cplusplus
 }
 #endif

@@ -8,9 +8,10 @@
 //
 // C99 <math.h> functions that IRIX 6.5.22's libc has and 6.5.7's does not:
 // nan, nearbyint, fmin, fmax and float forms of frexp, ldexp, fabs, ilogb,
-// logb and nextafter. clang's IRIX <math.h> declares them. A program built
-// against 6.5.7 takes these; one linked against 6.5.22's libc gets libc's,
-// since an archive member is only taken for a symbol nothing else defines.
+// logb and nextafter; and C23's roundeven, which no IRIX has. clang's IRIX
+// <math.h> declares them. A program built against 6.5.7 takes these; one
+// linked against 6.5.22's libc gets libc's, since an archive member is only
+// taken for a symbol nothing else defines.
 //
 // The float forms go through the double ones, which are exact for every
 // float argument, so each result is rounded once.
@@ -89,5 +90,16 @@ float nextafterf(float x, float y) {
   memcpy(&x, &u, sizeof x);
   return x;
 }
+
+// C23: to nearest, ties to even, whatever the rounding mode.
+double roundeven(double x) {
+  double t = trunc(x);
+  double d = x - t;
+  if (d == 0.5 || d == -0.5)
+    return fmod(t, 2.0) == 0.0 ? t : t + (x > 0 ? 1.0 : -1.0);
+  return round(x);
+}
+
+float roundevenf(float x) { return (float)roundeven(x); }
 
 #endif // defined(__sgi)
