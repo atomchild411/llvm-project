@@ -8,7 +8,9 @@
 //
 // IRIX before 6.5.22 has only C89's wide-character functions. These are the
 // C95 and C99 ones C and C++ libraries use, declared by clang's IRIX
-// <wchar.h> wrapper, and POSIX 2008's strnlen, declared by its <string.h>. They live here, in the builtins every IRIX link takes,
+// <wchar.h> wrapper, POSIX 2008's strnlen, declared by its <string.h>, and
+// C99's strtoimax, strtoumax and imaxabs, which IRIX's <inttypes.h> declares
+// (in its own API mode only) but no IRIX library defines. They live here, in the builtins every IRIX link takes,
 // so that a program built for 6.5.7 runs there; a libc that has them wins,
 // since an archive member is only taken for a symbol nothing else defines.
 // Calls reach them by name, too: clang lowers __builtin_wmemcmp and friends
@@ -22,6 +24,7 @@
 
 #if defined(__sgi)
 
+#include <inttypes.h>
 #include <limits.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -211,5 +214,18 @@ size_t strnlen(const char *s, size_t n) {
     ;
   return i;
 }
+
+// intmax_t is long long under n32 and long under n64: 64 bits either way,
+// so strtoll and strtoull have the right range and errno behaviour.
+intmax_t strtoimax(const char *__restrict s, char **__restrict end, int base) {
+  return strtoll(s, end, base);
+}
+
+uintmax_t strtoumax(const char *__restrict s, char **__restrict end,
+                    int base) {
+  return strtoull(s, end, base);
+}
+
+intmax_t imaxabs(intmax_t j) { return j < 0 ? -j : j; }
 
 #endif // defined(__sgi)
