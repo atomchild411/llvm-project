@@ -14,7 +14,9 @@
 //
 // O_NOFOLLOW, which IRIX lacks too, is handled here as well: a path that is a
 // symbolic link is refused with ELOOP, as POSIX says, after an lstat just
-// before the open -- not atomic against the link changing in between.
+// before the open -- not atomic against the link changing in between. And
+// O_DIRECTORY: the descriptor opened must be a directory (fstat), or it is
+// closed and the open fails with ENOTDIR.
 //
 // Its own file, so a program is only given it when it asks for it.
 //
@@ -57,7 +59,23 @@ int __irix_open(const char *path, int flags, ...) {
     flags &= ~__IRIX_O_NOFOLLOW;
   }
 #endif
+#ifdef __IRIX_O_DIRECTORY
+  {
+    int want_dir = (flags & __IRIX_O_DIRECTORY) != 0;
+    flags &= ~__IRIX_O_DIRECTORY;
+    fd = __irix_libc_open(path, flags & ~__IRIX_O_CLOEXEC, mode);
+    if (fd >= 0 && want_dir) {
+      struct stat st;
+      if (fstat(fd, &st) != 0 || !S_ISDIR(st.st_mode)) {
+        close(fd);
+        errno = ENOTDIR;
+        return -1;
+      }
+    }
+  }
+#else
   fd = __irix_libc_open(path, flags & ~__IRIX_O_CLOEXEC, mode);
+#endif
   if (fd >= 0 && (flags & __IRIX_O_CLOEXEC))
     fcntl(fd, F_SETFD, FD_CLOEXEC);
   return fd;

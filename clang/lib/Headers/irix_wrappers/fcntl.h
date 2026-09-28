@@ -15,6 +15,8 @@
  * O_NOFOLLOW, which IRIX lacks too, likewise: the builtins refuse a path
  * that is a symbolic link (ELOOP, as POSIX says), checking it with lstat
  * just before opening -- not atomic against the link changing in between.
+ * And O_DIRECTORY: what was opened must be a directory, or the open fails
+ * with ENOTDIR (checked with fstat on the descriptor, so exactly).
  */
 
 #ifndef __CLANG_IRIX_FCNTL_H
@@ -29,6 +31,10 @@
 #ifndef O_NOFOLLOW
 #define O_NOFOLLOW 0x20000000
 #define __IRIX_O_NOFOLLOW O_NOFOLLOW
+#endif
+#ifndef O_DIRECTORY
+#define O_DIRECTORY 0x40000000
+#define __IRIX_O_DIRECTORY O_DIRECTORY
 #endif
 #ifdef __cplusplus
 extern "C" {
