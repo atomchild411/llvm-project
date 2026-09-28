@@ -785,13 +785,14 @@ bool MipsBranchExpansion::handleMFLOSlot(Pred Predicate, Safe SafeInSlot) {
           continue;
         if (!SafeInSlot(*IInSlot, *I)) {
           // Two nops after mflo/mfhi, one after the instruction between;
-          // fewer if an earlier round put some there already.
+          // fewer if an earlier round put some there already. They go at the
+          // end of I's bundle, after a delay slot if I has one: count the
+          // nops anywhere in it.
           unsigned Needed = IsMFLOMFHI(I->getOpcode()) ? 2 : 1;
           for (MachineBasicBlock::instr_iterator N = std::next(I->getIterator());
-               Needed && N != FI->instr_end() && N->isBundledWithPred() &&
-               isNop(*N);
-               ++N)
-            --Needed;
+               Needed && N != FI->instr_end() && N->isBundledWithPred(); ++N)
+            if (isNop(*N))
+              --Needed;
           for (; Needed; --Needed) {
             Changed = true;
             TII->insertNop(*(I->getParent()), std::next(I), I->getDebugLoc())
