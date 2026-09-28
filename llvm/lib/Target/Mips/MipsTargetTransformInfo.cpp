@@ -7,8 +7,15 @@
 //===----------------------------------------------------------------------===//
 
 #include "MipsTargetTransformInfo.h"
+#include "llvm/Support/CommandLine.h"
 
 using namespace llvm;
+
+extern cl::opt<bool> UseMipsTailCalls;
+
+bool MipsTTIImpl::supportsTailCalls() const {
+  return UseMipsTailCalls && !ST->inMips16Mode();
+}
 
 bool MipsTTIImpl::hasDivRemOp(Type *DataType, bool IsSigned) const {
   EVT VT = TLI->getValueType(DL, DataType);

@@ -51,7 +51,8 @@ using namespace llvm;
 
 #define DEBUG_TYPE "mips-isel"
 
-static cl::opt<bool>
+// Not static: MipsTargetTransformInfo reports tail call support by it.
+cl::opt<bool>
 UseMipsTailCalls("mips-tail-calls", cl::Hidden,
                     cl::desc("MIPS: permit tail calls."), cl::init(false));
 
