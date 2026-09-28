@@ -11,12 +11,21 @@
  * it declares: IRIX's int64_t and intmax_t are long long under n32 and long
  * under n64, and intptr_t is long under both. Its integer constant macros
  * (INT64_C and the rest) are casts: see __irix_int_c.h.
+ *
+ * C99 also has <inttypes.h> include <stdint.h>; IRIX's does not, so code
+ * that includes only <inttypes.h> (nghttp2) went without SIZE_MAX and the
+ * other limits. Include it in the modes where IRIX has C99 (__c99: C99 and
+ * later, and C++); a C89 compilation keeps IRIX's header as it is.
  */
 
 #ifndef __CLANG_IRIX_INTTYPES_H
 #define __CLANG_IRIX_INTTYPES_H
 
 #include_next <inttypes.h>
+
+#ifdef __c99
+#include <stdint.h>
+#endif
 
 #include <__irix_int_c.h>
 
