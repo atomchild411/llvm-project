@@ -11,6 +11,10 @@
  * open() is routed to compiler-rt's IRIX builtins (irix/cloexec.c), which
  * open without the bit and then set FD_CLOEXEC with fcntl: the traditional
  * two steps, not atomic against a fork in another thread.
+ *
+ * O_NOFOLLOW, which IRIX lacks too, likewise: the builtins refuse a path
+ * that is a symbolic link (ELOOP, as POSIX says), checking it with lstat
+ * just before opening -- not atomic against the link changing in between.
  */
 
 #ifndef __CLANG_IRIX_FCNTL_H
@@ -22,6 +26,10 @@
 /* Above every O_ flag IRIX defines (its highest is O_LCFLUSH, 0x40000). */
 #define O_CLOEXEC 0x10000000
 #define __IRIX_O_CLOEXEC O_CLOEXEC
+#ifndef O_NOFOLLOW
+#define O_NOFOLLOW 0x20000000
+#define __IRIX_O_NOFOLLOW O_NOFOLLOW
+#endif
 #ifdef __cplusplus
 extern "C" {
 #endif

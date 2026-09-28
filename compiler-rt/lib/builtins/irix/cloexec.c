@@ -12,14 +12,20 @@
 // with fcntl: two steps, as before O_CLOEXEC existed, so not atomic against a
 // fork in another thread between them.
 //
+// O_NOFOLLOW, which IRIX lacks too, is handled here as well: a path that is a
+// symbolic link is refused with ELOOP, as POSIX says, after an lstat just
+// before the open -- not atomic against the link changing in between.
+//
 // Its own file, so a program is only given it when it asks for it.
 //
 //===----------------------------------------------------------------------===//
 
 #if defined(__sgi)
 
+#include <errno.h>
 #include <fcntl.h>
 #include <stdarg.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -41,6 +47,16 @@ int __irix_open(const char *path, int flags, ...) {
     mode = (mode_t)va_arg(ap, int);
     va_end(ap);
   }
+#ifdef __IRIX_O_NOFOLLOW
+  if (flags & __IRIX_O_NOFOLLOW) {
+    struct stat st;
+    if (lstat(path, &st) == 0 && S_ISLNK(st.st_mode)) {
+      errno = ELOOP;
+      return -1;
+    }
+    flags &= ~__IRIX_O_NOFOLLOW;
+  }
+#endif
   fd = __irix_libc_open(path, flags & ~__IRIX_O_CLOEXEC, mode);
   if (fd >= 0 && (flags & __IRIX_O_CLOEXEC))
     fcntl(fd, F_SETFD, FD_CLOEXEC);
