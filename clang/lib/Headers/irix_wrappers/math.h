@@ -11,6 +11,13 @@
  * (the values only need to be consistent; __builtin_fpclassify takes them)
  * and the classification macros on clang's builtins. Likewise C99's
  * INFINITY, NAN, HUGE_VALF and HUGE_VALL.
+ *
+ * Its libm has most of C99's functions (roundf, lrint, log2, fma, ...) but
+ * its header declares only some: declare the rest, for double and float.
+ * (Not long double: IRIX's is a pair of doubles, clang's IEEE quad.) The
+ * few that only 6.5.22's libc has -- nan, nearbyint, fmin, fmax and some
+ * float forms -- are also in compiler-rt's builtins (irix/math_c99.c), so
+ * that programs built against 6.5.7 link and run on both.
  */
 
 #ifndef __CLANG_IRIX_MATH_H
@@ -37,6 +44,65 @@
 #endif
 #ifndef HUGE_VALL
 #define HUGE_VALL __builtin_huge_vall()
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+/* In IRIX 6.5.7's libm and later, not declared by its <math.h>. */
+float acoshf(float);
+float asinhf(float);
+float atanhf(float);
+double exp2(double);
+float exp2f(float);
+double log2(double);
+float log2f(float);
+double scalbn(double, int);
+float scalbnf(float, int);
+double scalbln(double, long);
+float scalblnf(float, long);
+float cbrtf(float);
+float erff(float);
+float erfcf(float);
+float lgammaf(float);
+double tgamma(double);
+float tgammaf(float);
+float rintf(float);
+long lrint(double);
+long lrintf(float);
+long long llrint(double);
+long long llrintf(float);
+double round(double);
+float roundf(float);
+long lround(double);
+long lroundf(float);
+long long llround(double);
+long long llroundf(float);
+float remainderf(float, float);
+double remquo(double, double, int *);
+float remquof(float, float, int *);
+float copysignf(float, float);
+double fdim(double, double);
+float fdimf(float, float);
+double fma(double, double, double);
+float fmaf(float, float, float);
+/* In 6.5.22's libc; for 6.5.7 in irix/math_c99.c. */
+double nan(const char *);
+float nanf(const char *);
+double nearbyint(double);
+float nearbyintf(float);
+double fmax(double, double);
+float fmaxf(float, float);
+double fmin(double, double);
+float fminf(float, float);
+float frexpf(float, int *);
+float ldexpf(float, int);
+float fabsf(float);
+int ilogbf(float);
+float logbf(float);
+float nextafterf(float, float);
+#ifdef __cplusplus
+}
 #endif
 
 /* C++ gets these as functions from the C++ library's <cmath>. */
