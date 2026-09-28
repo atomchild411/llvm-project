@@ -122,6 +122,25 @@ __irix_snprintf(char *__s, size_t __n, const char *__fmt, ...) {
 }
 #endif
 
+/* POSIX 2008's (and the BSDs' asprintf), which IRIX's libc lacks: from
+ * compiler-rt's irix/posix2008.c. */
+#ifdef __cplusplus
+extern "C" {
+#endif
+ssize_t getdelim(char **__restrict, size_t *__restrict, int, FILE *__restrict);
+ssize_t getline(char **__restrict, size_t *__restrict, FILE *__restrict);
+int dprintf(int, const char *__restrict, ...)
+    __attribute__((__format__(__printf__, 2, 3)));
+int vdprintf(int, const char *__restrict, __builtin_va_list)
+    __attribute__((__format__(__printf__, 2, 0)));
+int asprintf(char **, const char *, ...)
+    __attribute__((__format__(__printf__, 2, 3)));
+int vasprintf(char **, const char *, __builtin_va_list)
+    __attribute__((__format__(__printf__, 2, 0)));
+#ifdef __cplusplus
+}
+#endif
+
 /* Object-like, so that std::snprintf and using ::snprintf follow too. */
 #define snprintf __irix_snprintf
 #define vsnprintf __irix_vsnprintf

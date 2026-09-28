@@ -46,4 +46,13 @@ int clock_getres(clockid_t, struct timespec *) __asm__("__irix_clock_getres");
 #endif
 #endif
 
+/* timegm (POSIX 2024, and every libc's), from irix/posix2008.c. */
+#ifdef __cplusplus
+extern "C" {
+#endif
+time_t timegm(struct tm *);
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* __CLANG_IRIX_TIME_H */

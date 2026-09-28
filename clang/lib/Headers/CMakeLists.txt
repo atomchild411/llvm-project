@@ -399,6 +399,7 @@ set(irix_wrapper_files
   irix_wrappers/__irix_int_c.h
   irix_wrappers/assert.h
   irix_wrappers/ctype.h
+  irix_wrappers/dirent.h
   irix_wrappers/fcntl.h
   irix_wrappers/fenv.h
   irix_wrappers/getopt.h

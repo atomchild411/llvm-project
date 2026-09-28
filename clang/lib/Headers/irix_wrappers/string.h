@@ -6,9 +6,11 @@
  *
  *===-----------------------------------------------------------------------===
  *
- * IRIX before 6.5.22 has no strnlen (POSIX 2008), and no IRIX has
- * strsignal. Declare them; compiler-rt's builtins, which every IRIX link
- * takes, define them (irix/libc_compat.c, irix/strsignal.c).
+ * No IRIX has strnlen (POSIX 2008) or strsignal. Declare them;
+ * compiler-rt's builtins, which every IRIX link takes, define them
+ * (irix/libc_compat.c, irix/strsignal.c). Likewise POSIX 2008's strndup,
+ * stpcpy, stpncpy and strerror_r (the int one), and strsep, strcasestr and
+ * explicit_bzero (irix/posix2008.c).
  */
 
 #ifndef __CLANG_IRIX_STRING_H
@@ -16,22 +18,21 @@
 
 #include_next <string.h>
 
-#if __IRIX_VERSION__ < 60522
 #ifdef __cplusplus
 extern "C" {
 #endif
 size_t strnlen(const char *, size_t);
-#ifdef __cplusplus
-}
-#endif
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 char *strsignal(int);
 /* POSIX 2024's (and every other libc's), from irix/misc.c. */
 void *memmem(const void *, size_t, const void *, size_t);
+/* From irix/posix2008.c. */
+char *strndup(const char *, size_t);
+char *stpcpy(char *__restrict, const char *__restrict);
+char *stpncpy(char *__restrict, const char *__restrict, size_t);
+char *strsep(char **, const char *);
+char *strcasestr(const char *, const char *);
+void explicit_bzero(void *, size_t);
+int strerror_r(int, char *, size_t);
 #ifdef __cplusplus
 }
 #endif

@@ -46,6 +46,11 @@ int setenv(const char *, const char *, int);
 int unsetenv(const char *);
 /* POSIX 2008's, from irix/misc.c. */
 char *mkdtemp(char *);
+/* POSIX 2001's posix_memalign, C11's aligned_alloc and POSIX 2024's
+ * reallocarray, from irix/posix2008.c. */
+int posix_memalign(void **, size_t, size_t);
+void *aligned_alloc(size_t, size_t);
+void *reallocarray(void *, size_t, size_t);
 #ifdef __cplusplus
 }
 #endif
