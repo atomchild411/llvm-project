@@ -22,6 +22,11 @@
  * __attribute__((format(printf, ...)))) to compiler-rt's __irix_c99_*, which
  * rewrite the format into one IRIX understands and call IRIX's own; snprintf
  * and vsnprintf below rewrite it the same way.
+ *
+ * The scanf family likewise (irix/scanf_c99.c), which also supplies C99's
+ * vscanf, vfscanf and vsscanf for 6.5.7. Both drop or change L before a
+ * floating conversion: clang's long double is a double on IRIX, MIPSpro's
+ * a pair of doubles.
  */
 
 #ifndef __CLANG_IRIX_STDIO_H
@@ -67,6 +72,14 @@ extern int vfprintf(FILE *, const char *, __builtin_va_list)
     __asm__("__irix_c99_vfprintf");
 extern int vsprintf(char *, const char *, __builtin_va_list)
     __asm__("__irix_c99_vsprintf");
+extern int scanf(const char *, ...) __asm__("__irix_c99_scanf");
+extern int fscanf(FILE *, const char *, ...) __asm__("__irix_c99_fscanf");
+extern int sscanf(const char *, const char *, ...) __asm__("__irix_c99_sscanf");
+extern int vscanf(const char *, __builtin_va_list) __asm__("__irix_c99_vscanf");
+extern int vfscanf(FILE *, const char *, __builtin_va_list)
+    __asm__("__irix_c99_vfscanf");
+extern int vsscanf(const char *, const char *, __builtin_va_list)
+    __asm__("__irix_c99_vsscanf");
 
 static __inline__
     __attribute__((__format__(__printf__, 3, 0))) int

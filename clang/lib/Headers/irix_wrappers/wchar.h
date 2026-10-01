@@ -12,7 +12,7 @@
  *
  * Before 6.5.22 it also has only C89's wide-character functions. Declare
  * C95's and C99's that C and C++ libraries use (the wmem* family, btowc and
- * wctob, iswblank, the restartable conversions, wcstof and wcstold, swprintf
+ * wctob, iswblank, the restartable conversions, wcstof, swprintf
  * and vswprintf, fwide), which compiler-rt's builtins define.
  */
 
@@ -87,7 +87,6 @@ size_t wcrtomb(char *, wchar_t, mbstate_t *);
 size_t mbsrtowcs(wchar_t *, const char **, size_t, mbstate_t *);
 size_t wcsrtombs(char *, const wchar_t **, size_t, mbstate_t *);
 float wcstof(const wchar_t *__restrict, wchar_t **__restrict);
-long double wcstold(const wchar_t *__restrict, wchar_t **__restrict);
 int vswprintf(wchar_t *__restrict, size_t, const wchar_t *__restrict,
               __builtin_va_list);
 int swprintf(wchar_t *__restrict, size_t, const wchar_t *__restrict, ...);
@@ -96,5 +95,13 @@ int fwide(FILE *, int);
 }
 #endif
 #endif /* __IRIX_VERSION__ < 60522 */
+
+/* clang's long double is a double on IRIX, so wcstold is wcstod (6.5.22's
+ * own returns MIPSpro's long double, a pair of doubles). */
+#ifdef __cplusplus
+extern "C"
+#endif
+long double wcstold(const wchar_t *__restrict, wchar_t **__restrict)
+    __asm__("wcstod");
 
 #endif /* __CLANG_IRIX_WCHAR_H */

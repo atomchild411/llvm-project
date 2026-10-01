@@ -242,6 +242,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "IRIX")
     ${GENERIC_SOURCES}
     irix/libc_compat.c
     irix/printf_c99.c
+    irix/scanf_c99.c
     irix/strtof.c
     irix/progname.c
     irix/strsignal.c

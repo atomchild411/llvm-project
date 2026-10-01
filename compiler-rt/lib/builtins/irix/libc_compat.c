@@ -49,7 +49,6 @@
 #pragma weak mbsrtowcs
 #pragma weak wcsrtombs
 #pragma weak wcstof
-#pragma weak wcstold
 #pragma weak vswprintf
 #pragma weak swprintf
 #pragma weak fwide
@@ -182,9 +181,6 @@ size_t wcsrtombs(char *d, const wchar_t **src, size_t len, mbstate_t *ps) {
 
 float wcstof(const wchar_t *__restrict s, wchar_t **__restrict end) {
   return (float)wcstod(s, end);
-}
-long double wcstold(const wchar_t *__restrict s, wchar_t **__restrict end) {
-  return wcstod(s, end);
 }
 
 /* The format and the output are converted to and from the multibyte

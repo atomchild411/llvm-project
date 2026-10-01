@@ -17,6 +17,10 @@
 // IRIX understands -- the same argument sizes, spelled the old way -- and
 // calls IRIX's own function with the arguments untouched.
 //
+// An L before a floating conversion goes too: clang's long double is a
+// double on IRIX and is passed as one, where IRIX's %Lf reads MIPSpro's
+// pair of doubles.
+//
 // Its own file, apart from libc_compat.c, so that a program is only given
 // these when it prints.
 //
@@ -61,11 +65,12 @@ const char *__irix_c99_fmt(const char *fmt, char *buf, size_t n,
       continue;
     }
     p += strspn(p, "0123456789.*$-+ #'");
-    if (*p == 'z' || *p == 't' || *p == 'j' || (p[0] == 'h' && p[1] == 'h'))
+    if (*p == 'z' || *p == 't' || *p == 'j' || (p[0] == 'h' && p[1] == 'h') ||
+        (*p == 'L' && p[1] && strchr("eEfFgGaA", p[1])))
       break;
   }
   if (p == 0)
-    return fmt; // no C99 modifier: IRIX takes it as it is
+    return fmt; // no C99 modifier, no L: IRIX takes it as it is
 
   // Every rewrite is no longer than the original, except j -> ll.
   len = strlen(fmt);
@@ -102,6 +107,10 @@ const char *__irix_c99_fmt(const char *fmt, char *buf, size_t n,
       // A char is promoted to int; h prints it as the same value.
       *o++ = 'h';
       p += 2;
+    } else if (*p == 'L' && p[1] && strchr("eEfFgGaA", p[1])) {
+      // clang's long double is double on IRIX, passed as a double; IRIX's
+      // %Lf would read a pair of doubles.
+      ++p;
     }
   }
   *o = 0;

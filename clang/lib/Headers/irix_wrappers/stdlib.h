@@ -70,6 +70,20 @@ extern float strtof(const char *__restrict, char **__restrict)
 #endif
 #endif
 
+/* clang's long double is a double on IRIX; IRIX's strtold and atold return
+ * MIPSpro's, a pair of doubles. Use strtod and atof under their names. */
+#ifdef __cplusplus
+extern "C" {
+#endif
+extern long double strtold(const char *__restrict, char **__restrict)
+    __asm__("strtod");
+#if _COMPILER_VERSION >= 400
+extern long double atold(const char *) __asm__("atof");
+#endif
+#ifdef __cplusplus
+}
+#endif
+
 #if defined(__c99) && !((_SGIAPI || _ABIAPI) && _NO_ANSIMODE)
 typedef struct {
   long long quot;

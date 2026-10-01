@@ -137,7 +137,12 @@ public:
   void setN32N64ABITypes() {
     LongDoubleWidth = LongDoubleAlign = 128;
     LongDoubleFormat = &llvm::APFloat::IEEEquad();
-    if (getTriple().isOSFreeBSD()) {
+    // IRIX: double too. IRIX's own long double (MIPSpro's n32/n64) is a
+    // pair of doubles that clang cannot represent; IEEE quad there meant
+    // that every long double crossing into libc (printf %Lf, scanf, strtold,
+    // libm's *l) was misread. clang's IRIX wrappers and compiler-rt's
+    // irix/ldbl.c send those through the double functions instead.
+    if (getTriple().isOSFreeBSD() || getTriple().isOSIRIX()) {
       LongDoubleWidth = LongDoubleAlign = 64;
       LongDoubleFormat = &llvm::APFloat::IEEEdouble();
     }

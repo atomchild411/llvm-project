@@ -14,10 +14,14 @@
  *
  * Its libm has most of C99's functions (roundf, lrint, log2, fma, ...) but
  * its header declares only some: declare the rest, for double and float.
- * (Not long double: IRIX's is a pair of doubles, clang's IEEE quad.) The
- * few that only 6.5.22's libc has -- nan, nearbyint, fmin, fmax and some
+ * The few that only 6.5.22's libc has -- nan, nearbyint, fmin, fmax and some
  * float forms -- are also in compiler-rt's builtins (irix/math_c99.c), so
  * that programs built against 6.5.7 link and run on both.
+ *
+ * clang's long double is a double on IRIX. IRIX's own *l functions take and
+ * return MIPSpro's long double, a pair of doubles, so every long double
+ * function is declared (by asm label) as its double counterpart, which has
+ * the same calling convention now. C++'s <cmath> overloads follow.
  */
 
 #ifndef __CLANG_IRIX_MATH_H
@@ -107,6 +111,56 @@ float roundevenf(float);
 #ifdef __cplusplus
 }
 #endif
+
+/* long double: the double functions, by asm label (see above). */
+#define __IRIX_LDBL1(f) long double f##l(long double) __asm__(#f);
+#define __IRIX_LDBL2(f) long double f##l(long double, long double) __asm__(#f);
+#ifdef __cplusplus
+extern "C" {
+#endif
+__IRIX_LDBL1(fabs) __IRIX_LDBL1(acos) __IRIX_LDBL1(asin) __IRIX_LDBL1(atan)
+__IRIX_LDBL1(ceil) __IRIX_LDBL1(cos) __IRIX_LDBL1(cosh) __IRIX_LDBL1(erf)
+__IRIX_LDBL1(erfc) __IRIX_LDBL1(exp) __IRIX_LDBL1(floor) __IRIX_LDBL1(log)
+__IRIX_LDBL1(log1p) __IRIX_LDBL1(log10) __IRIX_LDBL1(logb) __IRIX_LDBL1(rint)
+__IRIX_LDBL1(sin) __IRIX_LDBL1(sinh) __IRIX_LDBL1(sqrt) __IRIX_LDBL1(tan)
+__IRIX_LDBL1(tanh) __IRIX_LDBL1(trunc) __IRIX_LDBL1(j0) __IRIX_LDBL1(j1)
+__IRIX_LDBL1(y0) __IRIX_LDBL1(y1) __IRIX_LDBL1(gamma) __IRIX_LDBL1(lgamma)
+__IRIX_LDBL1(round) __IRIX_LDBL1(nearbyint) __IRIX_LDBL1(cbrt)
+__IRIX_LDBL1(exp2) __IRIX_LDBL1(log2) __IRIX_LDBL1(expm1) __IRIX_LDBL1(tgamma)
+__IRIX_LDBL1(acosh) __IRIX_LDBL1(asinh) __IRIX_LDBL1(atanh)
+__IRIX_LDBL1(roundeven)
+__IRIX_LDBL2(atan2) __IRIX_LDBL2(copysign) __IRIX_LDBL2(fmod)
+__IRIX_LDBL2(hypot) __IRIX_LDBL2(pow) __IRIX_LDBL2(nextafter)
+__IRIX_LDBL2(scalb) __IRIX_LDBL2(fmin) __IRIX_LDBL2(fmax)
+__IRIX_LDBL2(remainder) __IRIX_LDBL2(fdim)
+long double jnl(int, long double) __asm__("jn");
+long double ynl(int, long double) __asm__("yn");
+int finitel(long double) __asm__("finite");
+int isnanl(long double) __asm__("isnan");
+long double frexpl(long double, int *) __asm__("frexp");
+long double ldexpl(long double, int) __asm__("ldexp");
+long double modfl(long double, long double *) __asm__("modf");
+long double fmal(long double, long double, long double) __asm__("fma");
+long double remquol(long double, long double, int *) __asm__("remquo");
+int ilogbl(long double) __asm__("ilogb");
+long double scalbnl(long double, int) __asm__("scalbn");
+long double scalblnl(long double, long) __asm__("scalbln");
+long double nanl(const char *) __asm__("nan");
+long lrintl(long double) __asm__("lrint");
+long long llrintl(long double) __asm__("llrint");
+long lroundl(long double) __asm__("lround");
+long long llroundl(long double) __asm__("llround");
+long double nexttowardl(long double, long double) __asm__("nextafter");
+double nexttoward(double, long double) __asm__("nextafter");
+#if _SGIAPI
+/* Two long doubles, so two doubles: cabs's struct. */
+long double cabsl(struct __cabsl_s) __asm__("cabs");
+#endif
+#ifdef __cplusplus
+}
+#endif
+#undef __IRIX_LDBL1
+#undef __IRIX_LDBL2
 
 /* C++ gets these as functions from the C++ library's <cmath>. */
 #ifndef __cplusplus
