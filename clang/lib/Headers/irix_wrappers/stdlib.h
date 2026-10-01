@@ -27,7 +27,14 @@
 #define __IRIX_GETOPT_INDIRECT
 #define __IRIX_GETOPT_INDIRECT_STDLIB
 #endif
+/* IRIX declares putenv(const char *) (6.5.7 always, 6.5.22 outside XPG5);
+ * POSIX, glibc and the code written for them say putenv(char *), and in
+ * C++ the two cannot both be declared (gnulib's checks in gnutls).  Read
+ * IRIX's under another name; the POSIX one is declared below.  Same libc
+ * function, same calling convention. */
+#define putenv __irix_putenv_declaration
 #include_next <stdlib.h>
+#undef putenv
 #ifdef __IRIX_GETOPT_INDIRECT_STDLIB
 #undef __IRIX_GETOPT_INDIRECT
 #undef __IRIX_GETOPT_INDIRECT_STDLIB
@@ -141,15 +148,13 @@ void *valloc(size_t);
 }
 #endif
 #endif
-/* X/Open modes declare putenv(char *) themselves. */
-#if !_SGIAPI && !defined(_XOPEN_SOURCE)
+/* POSIX's putenv (see the top), in every mode, as glibc has it. */
 #ifdef __cplusplus
 extern "C" {
 #endif
-int putenv(const char *);
+int putenv(char *);
 #ifdef __cplusplus
 }
-#endif
 #endif
 
 #endif /* __CLANG_IRIX_STDLIB_H */
