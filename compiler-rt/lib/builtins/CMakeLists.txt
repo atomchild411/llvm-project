@@ -260,6 +260,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "IRIX")
     irix/mman.c
     irix/err.c
     irix/fenv.c
+    irix/sysconf.c
   )
 endif()
 
