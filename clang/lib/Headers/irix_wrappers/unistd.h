@@ -208,4 +208,58 @@ int unlinkat(int, const char *, int);
 #define _SC_XOPEN_UUCP 1049
 #endif
 
+/* POSIX's, in IRIX's libc, which its header declares only in SGI mode (and
+ * some X/Open modes): declared here outside SGI mode, with IRIX's own
+ * prototypes (found by compiling every POSIX header in six feature-macro
+ * modes against the 6.5.7 and 6.5.22 headers). */
+#if !_SGIAPI
+#ifdef __cplusplus
+extern "C" {
+#endif
+int brk(void *);
+int chroot(const char *);
+char *crypt(const char *, const char *);
+void encrypt(char *, int);
+int fchdir(int);
+int fchown(int, uid_t, gid_t);
+int fdatasync(int);
+int getdtablesize(void);
+long gethostid(void);
+int gethostname(char *, size_t);
+int getpagesize(void);
+pid_t getpgid(pid_t);
+pid_t getsid(pid_t);
+int lchown(const char *, uid_t, gid_t);
+int lockf(int, int, off_t);
+int nice(int);
+ssize_t pread(int, void *, size_t, off_t);
+ssize_t pwrite(int, const void *, size_t, off_t);
+int readlink(const char *, char *, size_t);
+void *sbrk(ssize_t);
+int setegid(gid_t);
+int seteuid(uid_t);
+pid_t setpgrp(void);
+int setregid(gid_t, gid_t);
+int setreuid(uid_t, uid_t);
+void swab(const void *, void *, ssize_t);
+int symlink(const char *, const char *);
+void sync(void);
+int truncate(const char *, off_t);
+int usleep(unsigned int);
+#ifdef __cplusplus
+}
+#endif
+#endif
+
+/* In IRIX's libc, and declared by no IRIX header a program would look in
+ * for it: declared here, with IRIX's own prototypes. */
+#ifdef __cplusplus
+extern "C" {
+#endif
+int initgroups(const char *, gid_t);
+int setgroups(int, const gid_t *);
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* __CLANG_IRIX_UNISTD_H */

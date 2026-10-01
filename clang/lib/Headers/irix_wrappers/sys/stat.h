@@ -36,4 +36,20 @@ int utimensat(int, const char *, const struct timespec[2], int);
 #ifdef __cplusplus
 }
 #endif
+/* POSIX's, in IRIX's libc, which its header declares only in SGI mode (and
+ * some X/Open modes): declared here outside SGI mode, with IRIX's own
+ * prototypes (found by compiling every POSIX header in six feature-macro
+ * modes against the 6.5.7 and 6.5.22 headers). */
+#if !_SGIAPI
+#ifdef __cplusplus
+extern "C" {
+#endif
+int fchmod(int, mode_t);
+int lstat(const char *, struct stat *);
+int mknod(const char *, mode_t, dev_t);
+#ifdef __cplusplus
+}
+#endif
+#endif
+
 #endif /* __CLANG_IRIX_SYS_STAT_H */

@@ -105,4 +105,51 @@ lldiv_t lldiv(long long, long long);
 #endif
 #endif
 
+/* POSIX's, in IRIX's libc, which its header declares only in SGI mode (and
+ * some X/Open modes): declared here outside SGI mode, with IRIX's own
+ * prototypes (found by compiling every POSIX header in six feature-macro
+ * modes against the 6.5.7 and 6.5.22 headers). */
+#if !_SGIAPI
+#ifdef __cplusplus
+extern "C" {
+#endif
+long a64l(const char *);
+double drand48(void);
+double erand48(unsigned short[3]);
+int getsubopt(char **, char *const *, char **);
+int grantpt(int);
+char *initstate(unsigned int, char *, size_t);
+long jrand48(unsigned short[3]);
+char *l64a(long);
+void lcong48(unsigned short[7]);
+long lrand48(void);
+int mkstemp(char *);
+char *mktemp(char *);
+long mrand48(void);
+long nrand48(unsigned short[3]);
+char *ptsname(int);
+long random(void);
+char *realpath(const char *, char *);
+unsigned short *seed48(unsigned short[3]);
+void setkey(const char *);
+char *setstate(const char *);
+void srand48(long);
+void srandom(unsigned int);
+int unlockpt(int);
+void *valloc(size_t);
+#ifdef __cplusplus
+}
+#endif
+#endif
+/* X/Open modes declare putenv(char *) themselves. */
+#if !_SGIAPI && !defined(_XOPEN_SOURCE)
+#ifdef __cplusplus
+extern "C" {
+#endif
+int putenv(const char *);
+#ifdef __cplusplus
+}
+#endif
+#endif
+
 #endif /* __CLANG_IRIX_STDLIB_H */

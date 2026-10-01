@@ -28,4 +28,14 @@ int pthread_cond_timedwait_relative_np(pthread_cond_t *, pthread_mutex_t *,
 }
 #endif
 
+/* In IRIX's libc, and declared by no IRIX header a program would look in
+ * for it: declared here, with IRIX's own prototypes. */
+#ifdef __cplusplus
+extern "C" {
+#endif
+int pthread_atfork(void (*)(void), void (*)(void), void (*)(void));
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* __CLANG_IRIX_PTHREAD_H */

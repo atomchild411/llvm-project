@@ -159,4 +159,21 @@ int renameat(int, const char *, int, const char *); /* irix/atfile.c */
 #define snprintf __irix_snprintf
 #define vsnprintf __irix_vsnprintf
 
+/* POSIX's, in IRIX's libc, which its header declares only in SGI mode (and
+ * some X/Open modes): declared here outside SGI mode, with IRIX's own
+ * prototypes (found by compiling every POSIX header in six feature-macro
+ * modes against the 6.5.7 and 6.5.22 headers). */
+#if !_SGIAPI
+#ifdef __cplusplus
+extern "C" {
+#endif
+char *ctermid(char *);
+int fseeko(FILE *, off_t, int);
+off_t ftello(FILE *);
+char *tempnam(const char *, const char *);
+#ifdef __cplusplus
+}
+#endif
+#endif
+
 #endif /* __CLANG_IRIX_STDIO_H */

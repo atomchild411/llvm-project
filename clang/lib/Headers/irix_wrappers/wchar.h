@@ -132,4 +132,19 @@ extern "C"
 long double wcstold(const wchar_t *__restrict, wchar_t **__restrict)
     __asm__("wcstod");
 
+/* POSIX's, in IRIX's libc, which its header declares only in SGI mode (and
+ * some X/Open modes): declared here outside SGI mode, with IRIX's own
+ * prototypes (found by compiling every POSIX header in six feature-macro
+ * modes against the 6.5.7 and 6.5.22 headers). */
+#if !_SGIAPI
+#ifdef __cplusplus
+extern "C" {
+#endif
+long long wcstoll(const wchar_t *, wchar_t **, int);
+unsigned long long wcstoull(const wchar_t *, wchar_t **, int);
+#ifdef __cplusplus
+}
+#endif
+#endif
+
 #endif /* __CLANG_IRIX_WCHAR_H */

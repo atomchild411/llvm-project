@@ -73,6 +73,54 @@ typedef __UINT_FAST64_TYPE__ uint_fast64_t;
 #define INT_FAST64_MAX __INT_FAST64_MAX__
 #define UINT_FAST64_MAX __UINT_FAST64_MAX__
 
+/* IRIX's <inttypes.h> gives the exact-width, intmax and intptr limits only
+ * in some modes (not with _POSIX_C_SOURCE or _XOPEN_SOURCE in C++, where
+ * libc++ needs them): supply whichever it did not. */
+#ifndef INT8_MAX
+#define INT8_MIN (-__INT8_MAX__ - 1)
+#define INT8_MAX __INT8_MAX__
+#define UINT8_MAX __UINT8_MAX__
+#endif
+#ifndef INT16_MAX
+#define INT16_MIN (-__INT16_MAX__ - 1)
+#define INT16_MAX __INT16_MAX__
+#define UINT16_MAX __UINT16_MAX__
+#endif
+#ifndef INT32_MAX
+#define INT32_MIN (-__INT32_MAX__ - 1)
+#define INT32_MAX __INT32_MAX__
+#define UINT32_MAX __UINT32_MAX__
+#endif
+#ifndef INT64_MAX
+#define INT64_MIN (-__INT64_MAX__ - 1)
+#define INT64_MAX __INT64_MAX__
+#define UINT64_MAX __UINT64_MAX__
+#endif
+#ifndef INTMAX_MAX
+#define INTMAX_MIN (-__INTMAX_MAX__ - 1)
+#define INTMAX_MAX __INTMAX_MAX__
+#define UINTMAX_MAX __UINTMAX_MAX__
+#endif
+#ifndef INTPTR_MAX
+#define INTPTR_MIN (-__INTPTR_MAX__ - 1)
+#define INTPTR_MAX __INTPTR_MAX__
+#define UINTPTR_MAX __UINTPTR_MAX__
+#endif
+#ifndef INT8_C
+#define INT8_C(c) __INT8_C(c)
+#define INT16_C(c) __INT16_C(c)
+#define INT32_C(c) __INT32_C(c)
+#define INT64_C(c) __INT64_C(c)
+#define UINT8_C(c) __UINT8_C(c)
+#define UINT16_C(c) __UINT16_C(c)
+#define UINT32_C(c) __UINT32_C(c)
+#define UINT64_C(c) __UINT64_C(c)
+#endif
+#ifndef INTMAX_C
+#define INTMAX_C(c) __INTMAX_C(c)
+#define UINTMAX_C(c) __UINTMAX_C(c)
+#endif
+
 #ifndef PTRDIFF_MIN
 #define PTRDIFF_MIN (-__PTRDIFF_MAX__ - 1)
 #define PTRDIFF_MAX __PTRDIFF_MAX__
