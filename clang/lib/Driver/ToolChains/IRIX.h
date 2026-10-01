@@ -38,9 +38,14 @@ public:
   CXXStdlibType GetDefaultCXXStdlibType() const override {
     return ToolChain::CST_Libcxx;
   }
+  // Unwind tables for C too, as on Linux x86-64 and AArch64: backtrace()
+  // and crash reports walk every frame (libunwind finds them through rld's
+  // object list), and C++ exceptions pass through C callbacks.  About 6% on
+  // a C library (sqlite3); on MIPS asynchronous tables cost no more than
+  // synchronous ones.
   UnwindTableLevel
   getDefaultUnwindTableLevel(const llvm::opt::ArgList &Args) const override {
-    return UnwindTableLevel::None;
+    return UnwindTableLevel::Asynchronous;
   }
   bool isPICDefault() const override { return true; }
   bool isPIEDefault(const llvm::opt::ArgList &Args) const override {
