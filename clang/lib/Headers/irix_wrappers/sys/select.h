@@ -18,6 +18,16 @@
 /* 6.5.22's uses SGI's namespace macros without including their definitions
  * (<sys/types.h> brings them), which fails when it comes first. */
 #include <sys/types.h>
+/* In SGI mode IRIX's header includes <string.h> inside its extern "C"
+ * block, and is itself included from inside <sys/time.h>'s.  In C++ a
+ * <string.h> with templates (libc++'s overloads, gnulib's replacement:
+ * gnutls) cannot be read there: read it first, with C++ linkage (its C
+ * declarations give themselves C linkage). */
+#if defined(__cplusplus) && _SGIAPI
+extern "C++" {
+#include <string.h>
+}
+#endif
 #include_next <sys/select.h>
 #include <sys/time.h>
 
