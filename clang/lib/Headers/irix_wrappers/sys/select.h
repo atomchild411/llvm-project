@@ -20,8 +20,10 @@
  * string functions declared (glibc's and the BSDs' do not): cabextract,
  * which defines static ones of its own, did not compile. Keep <string.h>
  * (IRIX's and our wrapper) out unless it is already in, and give FD_ZERO
- * the builtin. */
-#if !defined(__STRING_H__)
+ * the builtin. C only: in C++, libc++'s own <string.h> sits in front and
+ * would record itself as included with nothing declared (<cstring> then
+ * fails: "reference to unresolved using declaration" for memcpy). */
+#if !defined(__STRING_H__) && !defined(__cplusplus)
 #define __CLANG_IRIX_SELECT_NO_STRING
 #define __STRING_H__
 #define __CLANG_IRIX_STRING_H
