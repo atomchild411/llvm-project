@@ -176,4 +176,18 @@ char *tempnam(const char *, const char *);
 #endif
 #endif
 
+/* BSD's, in IRIX's libc, which its header declares only in SGI mode:
+ * declared here outside it, with IRIX's own prototypes (glibc gives them
+ * with _DEFAULT_SOURCE; Python, among others, uses them). */
+#if !_SGIAPI
+#ifdef __cplusplus
+extern "C" {
+#endif
+int setbuffer(FILE *, char *, int);
+int setlinebuf(FILE *);
+#ifdef __cplusplus
+}
+#endif
+#endif
+
 #endif /* __CLANG_IRIX_STDIO_H */

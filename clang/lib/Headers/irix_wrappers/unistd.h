@@ -262,4 +262,23 @@ int setgroups(int, const gid_t *);
 }
 #endif
 
+/* BSD's, in IRIX's libc, which its header declares only in SGI mode:
+ * declared here outside it, with IRIX's own prototypes (glibc gives them
+ * with _DEFAULT_SOURCE; Python, among others, uses them). */
+#if !_SGIAPI
+#ifdef __cplusplus
+extern "C" {
+#endif
+int acct(const char *);
+int getdomainname(char *, int);
+char *getwd(char *);
+int profil(unsigned short *, unsigned int, unsigned int, unsigned int);
+int setdomainname(const char *, int);
+int sethostid(int);
+int sethostname(const char *, int);
+#ifdef __cplusplus
+}
+#endif
+#endif
+
 #endif /* __CLANG_IRIX_UNISTD_H */

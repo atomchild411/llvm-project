@@ -75,4 +75,26 @@ int getnameinfo(const struct sockaddr *, socklen_t, char *, socklen_t, char *,
 #endif
 #endif
 
+/* BSD's, in IRIX's libc, which its header declares only in SGI mode:
+ * declared here outside it, with IRIX's own prototypes (glibc gives them
+ * with _DEFAULT_SOURCE; Python, among others, uses them). */
+#if !_SGIAPI
+struct hostent;
+struct servent;
+#ifdef __cplusplus
+extern "C" {
+#endif
+struct hostent *gethostbyaddr_r(const void *, size_t, int, struct hostent *,
+                                char *, int, int *);
+struct hostent *gethostbyname_r(const char *, struct hostent *, char *, int,
+                                int *);
+struct servent *getservbyname_r(const char *, const char *, struct servent *,
+                                char *, int);
+void herror(const char *);
+char *hstrerror(int);
+#ifdef __cplusplus
+}
+#endif
+#endif
+
 #endif /* __CLANG_IRIX_NETDB_H */

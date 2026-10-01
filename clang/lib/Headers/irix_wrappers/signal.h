@@ -45,4 +45,17 @@ int pthread_sigmask(int, const sigset_t *, sigset_t *);
 }
 #endif
 
+/* BSD's, in IRIX's libc, which its header declares only in SGI mode:
+ * declared here outside it, with IRIX's own prototypes (glibc gives them
+ * with _DEFAULT_SOURCE; Python, among others, uses them). */
+#if !_SGIAPI
+#ifdef __cplusplus
+extern "C" {
+#endif
+void (*bsd_signal(int, void (*)(int)))(int);
+#ifdef __cplusplus
+}
+#endif
+#endif
+
 #endif /* __CLANG_IRIX_SIGNAL_H */

@@ -35,4 +35,19 @@ int setitimer(int, const struct itimerval *, struct itimerval *);
 #endif
 #endif
 
+/* BSD's, in IRIX's libc, which its header declares only in SGI mode:
+ * declared here outside it, with IRIX's own prototypes (glibc gives them
+ * with _DEFAULT_SOURCE; Python, among others, uses them). */
+#if !_SGIAPI
+struct timeval;
+#ifdef __cplusplus
+extern "C" {
+#endif
+int adjtime(struct timeval *, struct timeval *);
+int settimeofday(struct timeval *, ...);
+#ifdef __cplusplus
+}
+#endif
+#endif
+
 #endif /* __CLANG_IRIX_SYS_TIME_H */
