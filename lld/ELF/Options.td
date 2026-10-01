@@ -836,6 +836,14 @@ def: Joined<["-"], "update_registry=">;
 def: Separate<["-"], "create_registry">;
 def: Joined<["-"], "create_registry=">;
 
+// And the ABI and layout options that build systems' IRIX recipes put on
+// "ld -n32 -shared -rdata_shared" lines (Tcl's, imake's): the ABI comes from
+// the objects, and read-only data is always shared.
+def: Flag<["-"], "n32">;
+def: Flag<["-"], "64">;
+def: Flag<["-"], "rdata_shared">;
+def: Flag<["-"], "elf">;
+
 // Hidden option used for testing MIPS multi-GOT implementation.
 defm mips_got_size:
   Eq<"mips-got-size", "Max size of a single MIPS GOT. 0x10000 by default.">,
