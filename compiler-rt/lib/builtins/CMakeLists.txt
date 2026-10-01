@@ -265,6 +265,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "IRIX")
     irix/sysconf.c
     irix/compat_bsd.c
     irix/dladdr.c
+    irix/pselect.c
   )
 endif()
 

@@ -51,4 +51,22 @@ int select(int, fd_set *, fd_set *, fd_set *, struct timeval *);
 #endif
 #undef __CLANG_IRIX_HAS_SELECT
 
+/* pselect(), which IRIX lacks (6.5.7 and 6.5.22): compiler-rt's IRIX
+ * builtins provide it over sigprocmask and select.  POSIX has this header
+ * define sigset_t; IRIX's <signal.h> cannot be included from here (it needs
+ * types that come later), so sigset_t is declared under IRIX's own guard,
+ * with its layout. */
+#ifndef _SIGSET_T
+#define _SIGSET_T
+typedef struct {
+  __uint32_t __sigbits[4];
+} sigset_t;
+#endif
+struct timespec;
+#ifdef __cplusplus
+extern "C"
+#endif
+int pselect(int, fd_set *, fd_set *, fd_set *, const struct timespec *,
+            const sigset_t *);
+
 #endif /* __CLANG_IRIX_SYS_SELECT_H */
