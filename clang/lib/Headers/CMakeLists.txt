@@ -396,8 +396,11 @@ set(zos_wrapper_files
 )
 
 set(irix_wrapper_files
+  irix_wrappers/__irix_endian_swap.h
   irix_wrappers/__irix_int_c.h
   irix_wrappers/assert.h
+  irix_wrappers/termios.h
+  irix_wrappers/endian.h
   irix_wrappers/ctype.h
   irix_wrappers/dirent.h
   irix_wrappers/err.h
@@ -427,10 +430,13 @@ set(irix_wrapper_internal_files
 
 # Installed under irix_wrappers/sys/.
 set(irix_wrapper_sys_files
+  irix_wrappers/sys/endian.h
   irix_wrappers/sys/file.h
   irix_wrappers/sys/mman.h
   irix_wrappers/sys/select.h
   irix_wrappers/sys/socket.h
+  irix_wrappers/sys/stat.h
+  irix_wrappers/sys/sysinfo.h
   irix_wrappers/sys/types.h
 )
 
