@@ -1869,7 +1869,19 @@ static void readConfigs(Ctx &ctx, opt::InputArgList &args) {
            "intend to set the base address";
 
   // Parse ELF{32,64}{LE,BE} and CPU type.
-  if (auto *arg = args.getLastArg(OPT_m)) {
+  // GNU ld's IRIX emulations (elf32bsmip, elf32bmipn32, elf64bmip, and their
+  // little-endian twins) name an ABI that the input objects already carry,
+  // and libtool picks them by matching file(1) output, which says "32-bit"
+  // for n32 too. Take the ABI from the inputs, as without -m.
+  auto isIrixEmulation = [](StringRef s) {
+    return StringSwitch<bool>(s)
+        .Cases("elf32bsmip", "elf32lsmip", "elf32bmipn32", "elf32lmipn32",
+               true)
+        .Cases("elf64bmip", "elf64lmip", true)
+        .Default(false);
+  };
+  if (auto *arg = args.getLastArg(OPT_m);
+      arg && !isIrixEmulation(arg->getValue())) {
     StringRef s = arg->getValue();
     std::tie(ctx.arg.ekind, ctx.arg.emachine, ctx.arg.osabi) =
         parseEmulation(ctx, s);
