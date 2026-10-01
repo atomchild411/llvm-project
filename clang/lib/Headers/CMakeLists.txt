@@ -398,6 +398,7 @@ set(zos_wrapper_files
 set(irix_wrapper_files
   irix_wrappers/dlfcn.h
   irix_wrappers/ftw.h
+  irix_wrappers/limits.h
   irix_wrappers/grp.h
   irix_wrappers/pwd.h
   irix_wrappers/search.h
