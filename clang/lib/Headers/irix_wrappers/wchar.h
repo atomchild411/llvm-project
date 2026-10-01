@@ -31,6 +31,11 @@
  * them. Declare them first: they live in internal/wchar_core.h (guarded;
  * 6.5.7 has no such file), after the headers IRIX's <wchar.h> itself
  * includes ahead of it, in the same order. */
+/* IRIX's wcstok is XPG4's, wcstok(s, delim) (6.5.22 gives C95's only in
+ * X/Open 5 mode, through an inline on _xpg5_wcstok): keep its declarations
+ * under another name and declare C95's below. */
+#define wcstok __irix_libc_wcstok
+
 #if defined(__cplusplus) && __has_include(<internal/wchar_core.h>)
 #include <stdio.h>
 #include <ctype.h>
@@ -40,6 +45,14 @@
 #endif
 
 #include_next <wchar.h>
+#undef wcstok
+
+/* C95's wcstok is IRIX's wcstok_r, in every IRIX libc. */
+#ifdef __cplusplus
+extern "C"
+#endif
+wchar_t *wcstok(wchar_t *__restrict, const wchar_t *__restrict,
+                wchar_t **__restrict) __asm__("wcstok_r");
 
 #if defined(__cplusplus) && defined(_E1)
 #undef _ISwprint
