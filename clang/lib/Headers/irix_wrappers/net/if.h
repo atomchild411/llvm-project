@@ -9,11 +9,17 @@
  * RFC 3493's if_nametoindex and if_indextoname, and IF_NAMESIZE, which IRIX
  * lacks. They exist for IPv6 scope ids, which IRIX has no use for: compiler-rt
  * (irix/netdb.c) defines them to find no interface.
+ *
+ * IRIX's header also uses the BSD types u_char, u_short, ... which
+ * <sys/types.h> gives only outside POSIX and X/Open modes: bring them in
+ * first (<sys/bsd_types.h> holds just those).
  */
 
 #ifndef __CLANG_IRIX_NET_IF_H
 #define __CLANG_IRIX_NET_IF_H
 
+#include <sys/types.h>
+#include <sys/bsd_types.h>
 #include_next <net/if.h>
 
 #ifndef IF_NAMESIZE

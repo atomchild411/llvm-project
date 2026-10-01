@@ -13,6 +13,9 @@
  */
 #ifndef __CLANG_IRIX_SYS_STAT_H
 #define __CLANG_IRIX_SYS_STAT_H
+/* POSIX 2008 has <sys/stat.h> give struct timespec as <time.h> does; IRIX's
+ * X/Open 5 mode names it only once <time.h> is in (utimensat below). */
+#include <time.h>
 #include_next <sys/stat.h>
 #ifndef UTIME_NOW
 #define UTIME_NOW ((1L << 30) - 1)

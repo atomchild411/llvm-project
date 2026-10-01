@@ -85,10 +85,13 @@ extern long double atold(const char *) __asm__("atof");
 #endif
 
 #if defined(__c99) && !((_SGIAPI || _ABIAPI) && _NO_ANSIMODE)
+/* 6.5.22's headers (internal/) define it themselves in C99 mode. */
+#if !__has_include(<internal/stdlib_core.h>)
 typedef struct {
   long long quot;
   long long rem;
 } lldiv_t;
+#endif
 #ifdef __cplusplus
 extern "C" {
 #endif
