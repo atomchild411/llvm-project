@@ -29,6 +29,9 @@ typedef struct Dl_info {
 } Dl_info;
 #endif
 
+/* For code that otherwise writes its own dladdr over rld, as IRIX's
+ * dladdr(3C) tells it to (OpenSSL). */
+#define __CLANG_IRIX_DLADDR 1
 #ifdef __cplusplus
 extern "C" {
 #endif
