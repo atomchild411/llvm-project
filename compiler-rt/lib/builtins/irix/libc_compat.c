@@ -95,9 +95,13 @@ wchar_t *wmemset(wchar_t *d, wchar_t c, size_t n) {
 wint_t btowc(int c) {
   char b = (char)c;
   wchar_t w;
-  if (c == EOF || mbtowc(&w, &b, 1) != 1)
+  int r;
+  if (c == EOF)
     return WEOF;
-  return (wint_t)w;
+  r = mbtowc(&w, &b, 1); /* 0 for the null character */
+  if (r < 0)
+    return WEOF;
+  return r == 0 ? 0 : (wint_t)w;
 }
 int wctob(wint_t c) {
   char b[MB_LEN_MAX];
