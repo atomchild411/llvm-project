@@ -44,4 +44,18 @@ void *mmap64(void *, size_t, int, int, int, long long) __asm__("__irix_mmap64");
 #define MAP_FILE 0
 #endif
 
+/* madvise and its advice are BSD's, which every other libc has in its
+ * default mode; IRIX's are in libc but declared only in SGI mode. */
+#ifndef MADV_NORMAL
+#define MADV_NORMAL 0
+#define MADV_RANDOM 1
+#define MADV_SEQUENTIAL 2
+#define MADV_WILLNEED 3
+#define MADV_DONTNEED 4
+#endif
+#ifdef __cplusplus
+extern "C"
+#endif
+int madvise(void *, size_t, int);
+
 #endif /* __CLANG_IRIX_SYS_MMAN_H */
