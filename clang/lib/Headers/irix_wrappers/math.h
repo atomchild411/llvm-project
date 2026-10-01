@@ -7,9 +7,10 @@
  *===-----------------------------------------------------------------------===
  *
  * IRIX's <math.h> predates C99's floating-point classification in 6.5.7:
- * no FP_NAN and friends, no fpclassify. Add the constants when missing
- * (the values only need to be consistent; __builtin_fpclassify takes them)
- * and the classification macros on clang's builtins. Likewise C99's
+ * no FP_NAN and friends, no fpclassify, isnan only as a function. Add the
+ * constants when missing (the values only need to be consistent;
+ * __builtin_fpclassify takes them) and the classification and comparison
+ * macros on clang's builtins. Likewise C99's
  * INFINITY, NAN, HUGE_VALF and HUGE_VALL.
  *
  * Its libm has most of C99's functions (roundf, lrint, log2, fma, ...) but
@@ -179,6 +180,18 @@ long double cabsl(struct __cabsl_s) __asm__("cabs");
 #endif
 #ifndef signbit
 #define signbit(x) __builtin_signbit(x)
+#endif
+/* IRIX has isnan as a function (of a double); C99 makes it a macro. */
+#ifndef isnan
+#define isnan(x) __builtin_isnan(x)
+#endif
+#ifndef isgreater
+#define isgreater(x, y) __builtin_isgreater((x), (y))
+#define isgreaterequal(x, y) __builtin_isgreaterequal((x), (y))
+#define isless(x, y) __builtin_isless((x), (y))
+#define islessequal(x, y) __builtin_islessequal((x), (y))
+#define islessgreater(x, y) __builtin_islessgreater((x), (y))
+#define isunordered(x, y) __builtin_isunordered((x), (y))
 #endif
 #endif
 
