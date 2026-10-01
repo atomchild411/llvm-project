@@ -15,13 +15,19 @@
  * in6addr_loopback (defined by compiler-rt's IRIX builtins, irix/netdb.c),
  * the IN6_IS_ADDR_* tests, ipv6_mreq and the IPV6_* option names. They make
  * code compile and let it parse and print IPv6 addresses; they do not give
- * IRIX IPv6 networking.
+ * IRIX IPv6 networking. INET_ADDRSTRLEN, which IRIX also keeps under INET6,
+ * is defined either way.
  */
 
 #ifndef __CLANG_IRIX_NETINET_IN_H
 #define __CLANG_IRIX_NETINET_IN_H
 
 #include_next <netinet/in.h>
+
+/* POSIX's IPv4 constant, which IRIX defines only under INET6. */
+#ifndef INET_ADDRSTRLEN
+#define INET_ADDRSTRLEN 16
+#endif
 
 #if !defined(INET6) && !defined(IN6ADDR_ANY_INIT)
 #include <sys/socket.h>
