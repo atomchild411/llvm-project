@@ -15,27 +15,7 @@
 #ifndef __CLANG_IRIX_SYS_SELECT_H
 #define __CLANG_IRIX_SYS_SELECT_H
 
-/* In SGI mode IRIX's <sys/select.h> includes all of <string.h>, for
- * FD_ZERO's memset, so every program that includes <sys/types.h> gets the
- * string functions declared (glibc's and the BSDs' do not): cabextract,
- * which defines static ones of its own, did not compile. Keep <string.h>
- * (IRIX's and our wrapper) out unless it is already in, and give FD_ZERO
- * the builtin. C only: in C++, libc++'s own <string.h> sits in front and
- * would record itself as included with nothing declared (<cstring> then
- * fails: "reference to unresolved using declaration" for memcpy). */
-#if !defined(__STRING_H__) && !defined(__cplusplus)
-#define __CLANG_IRIX_SELECT_NO_STRING
-#define __STRING_H__
-#define __CLANG_IRIX_STRING_H
-#endif
 #include_next <sys/select.h>
-#ifdef __CLANG_IRIX_SELECT_NO_STRING
-#undef __STRING_H__
-#undef __CLANG_IRIX_STRING_H
-#undef __CLANG_IRIX_SELECT_NO_STRING
-#undef FD_ZERO
-#define FD_ZERO(p) __builtin_memset((void *)(p), 0, sizeof(*(p)))
-#endif
 #include <sys/time.h>
 
 /* IRIX gives struct timeval and select() only in X/Open, SGI and BSD modes.
