@@ -19,6 +19,16 @@
 //   _SC_SPIN_LOCKS, _SC_BARRIERS, _SC_READER_WRITER_LOCKS, _SC_CPUTIME,
 //   _SC_THREAD_CPUTIME    -1: not supported (6.5.22's libpthread has no
 //                         spin locks or barriers; no CPU-time clocks)
+//   _SC_RAW_SOCKETS       supported (200112): IRIX has SOCK_RAW
+//   _SC_REGEXP, _SC_SHELL supported (1): regcomp, /bin/sh
+//   _SC_SPAWN             supported (200112): compiler-rt's posix_spawn
+//   _SC_XOPEN_STREAMS     supported (1): IRIX has STREAMS
+//   _SC_V6_*, _SC_V7_*    IRIX's answer for the matching _SC_XBS5_*
+//                         compilation environment
+//   the PBS options, _SC_ADVISORY_INFO, _SC_IPV6, the sporadic server,
+//   robust mutexes, _SC_TIMEOUTS, tracing, typed memory objects,
+//   _SC_XOPEN_REALTIME_THREADS, _SC_XOPEN_UUCP
+//                         -1: not supported (or, for a limit, none known)
 //
 //===----------------------------------------------------------------------===//
 
@@ -28,6 +38,7 @@
 #include <sys/param.h>
 #include <sys/sysmp.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 extern long __irix_libc_sysconf(int) __asm__("sysconf");
 
@@ -57,7 +68,26 @@ long __irix_sysconf(int name) {
   case 1010:
   case 1011:
     return -1;
+  case 1020: // _SC_RAW_SOCKETS
+  case 1023: // _SC_SPAWN
+    return 200112L;
+  case 1021: // _SC_REGEXP
+  case 1022: // _SC_SHELL
+  case 1048: // _SC_XOPEN_STREAMS
+    return 1;
+  case 1039: // _SC_V6_ILP32_OFF32 .. _SC_V6_LPBIG_OFFBIG
+  case 1040:
+  case 1041:
+  case 1042:
+    return __irix_libc_sysconf(_SC_XBS5_ILP32_OFF32 + (name - 1039));
+  case 1043: // _SC_V7_ILP32_OFF32 .. _SC_V7_LPBIG_OFFBIG
+  case 1044:
+  case 1045:
+  case 1046:
+    return __irix_libc_sysconf(_SC_XBS5_ILP32_OFF32 + (name - 1043));
   }
+  if (name >= 1012 && name <= 1049)
+    return -1;
   return __irix_libc_sysconf(name);
 }
 

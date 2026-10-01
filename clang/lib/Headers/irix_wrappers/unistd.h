@@ -85,5 +85,120 @@ long sysconf(int) __asm__("__irix_sysconf");
 #ifndef _SC_THREAD_CPUTIME
 #define _SC_THREAD_CPUTIME 1011
 #endif
+/* The rest of POSIX.1-2008's. */
+#ifndef _SC_2_PBS
+#define _SC_2_PBS 1012
+#endif
+#ifndef _SC_2_PBS_ACCOUNTING
+#define _SC_2_PBS_ACCOUNTING 1013
+#endif
+#ifndef _SC_2_PBS_CHECKPOINT
+#define _SC_2_PBS_CHECKPOINT 1014
+#endif
+#ifndef _SC_2_PBS_LOCATE
+#define _SC_2_PBS_LOCATE 1015
+#endif
+#ifndef _SC_2_PBS_MESSAGE
+#define _SC_2_PBS_MESSAGE 1016
+#endif
+#ifndef _SC_2_PBS_TRACK
+#define _SC_2_PBS_TRACK 1017
+#endif
+#ifndef _SC_ADVISORY_INFO
+#define _SC_ADVISORY_INFO 1018
+#endif
+#ifndef _SC_IPV6
+#define _SC_IPV6 1019
+#endif
+#ifndef _SC_RAW_SOCKETS
+#define _SC_RAW_SOCKETS 1020
+#endif
+#ifndef _SC_REGEXP
+#define _SC_REGEXP 1021
+#endif
+#ifndef _SC_SHELL
+#define _SC_SHELL 1022
+#endif
+#ifndef _SC_SPAWN
+#define _SC_SPAWN 1023
+#endif
+#ifndef _SC_SPORADIC_SERVER
+#define _SC_SPORADIC_SERVER 1024
+#endif
+#ifndef _SC_SS_REPL_MAX
+#define _SC_SS_REPL_MAX 1025
+#endif
+#ifndef _SC_THREAD_ROBUST_PRIO_INHERIT
+#define _SC_THREAD_ROBUST_PRIO_INHERIT 1026
+#endif
+#ifndef _SC_THREAD_ROBUST_PRIO_PROTECT
+#define _SC_THREAD_ROBUST_PRIO_PROTECT 1027
+#endif
+#ifndef _SC_THREAD_SPORADIC_SERVER
+#define _SC_THREAD_SPORADIC_SERVER 1028
+#endif
+#ifndef _SC_TIMEOUTS
+#define _SC_TIMEOUTS 1029
+#endif
+#ifndef _SC_TRACE
+#define _SC_TRACE 1030
+#endif
+#ifndef _SC_TRACE_EVENT_FILTER
+#define _SC_TRACE_EVENT_FILTER 1031
+#endif
+#ifndef _SC_TRACE_EVENT_NAME_MAX
+#define _SC_TRACE_EVENT_NAME_MAX 1032
+#endif
+#ifndef _SC_TRACE_INHERIT
+#define _SC_TRACE_INHERIT 1033
+#endif
+#ifndef _SC_TRACE_LOG
+#define _SC_TRACE_LOG 1034
+#endif
+#ifndef _SC_TRACE_NAME_MAX
+#define _SC_TRACE_NAME_MAX 1035
+#endif
+#ifndef _SC_TRACE_SYS_MAX
+#define _SC_TRACE_SYS_MAX 1036
+#endif
+#ifndef _SC_TRACE_USER_EVENT_MAX
+#define _SC_TRACE_USER_EVENT_MAX 1037
+#endif
+#ifndef _SC_TYPED_MEMORY_OBJECTS
+#define _SC_TYPED_MEMORY_OBJECTS 1038
+#endif
+#ifndef _SC_V6_ILP32_OFF32
+#define _SC_V6_ILP32_OFF32 1039
+#endif
+#ifndef _SC_V6_ILP32_OFFBIG
+#define _SC_V6_ILP32_OFFBIG 1040
+#endif
+#ifndef _SC_V6_LP64_OFF64
+#define _SC_V6_LP64_OFF64 1041
+#endif
+#ifndef _SC_V6_LPBIG_OFFBIG
+#define _SC_V6_LPBIG_OFFBIG 1042
+#endif
+#ifndef _SC_V7_ILP32_OFF32
+#define _SC_V7_ILP32_OFF32 1043
+#endif
+#ifndef _SC_V7_ILP32_OFFBIG
+#define _SC_V7_ILP32_OFFBIG 1044
+#endif
+#ifndef _SC_V7_LP64_OFF64
+#define _SC_V7_LP64_OFF64 1045
+#endif
+#ifndef _SC_V7_LPBIG_OFFBIG
+#define _SC_V7_LPBIG_OFFBIG 1046
+#endif
+#ifndef _SC_XOPEN_REALTIME_THREADS
+#define _SC_XOPEN_REALTIME_THREADS 1047
+#endif
+#ifndef _SC_XOPEN_STREAMS
+#define _SC_XOPEN_STREAMS 1048
+#endif
+#ifndef _SC_XOPEN_UUCP
+#define _SC_XOPEN_UUCP 1049
+#endif
 
 #endif /* __CLANG_IRIX_UNISTD_H */
