@@ -13,14 +13,17 @@
 #ifndef __CLANG_IRIX_STDINT_H
 #define __CLANG_IRIX_STDINT_H
 
-#if __has_include_next(<stdint.h>)
-/* IRIX's C99 <stdint.h> comes with MIPSpro 7.3/7.4's headers. */
+#if __has_include_next(<stdint.h>) && defined(__c99)
+/* IRIX's C99 <stdint.h> comes with MIPSpro 7.3/7.4's headers, and stops
+ * with #error unless the compilation is C99 (__c99); C89 and gnu89 code
+ * (fribidi) takes the branch below. */
 #include_next <stdint.h>
 #ifdef INT64_C
 #include <__irix_int_c.h>
 #endif
 #else
-/* A root without MIPSpro 7.3+'s headers (a stock 6.5.22 has none): IRIX's
+/* A root without MIPSpro 7.3+'s headers (a stock 6.5.22 has none), or a
+ * compilation that is not C99: IRIX's
  * pre-C99 <inttypes.h> (through our wrapper, which fixes its INTn_C) has the
  * exact-width types, intmax_t and intptr_t with their limits. Add the rest
  * of C99's <stdint.h> from clang's predefined macros. (clang's own
