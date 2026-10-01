@@ -1,0 +1,50 @@
+# REQUIRES: mips
+## An object MIPSpro made (it has SGI .MIPS.events sections) keeps its debug
+## information in an SGI DWARF 2 dialect that LLVM's reader warns about when
+## lld looks up a source location for a diagnostic. lld drops it, with the
+## events sections, so the diagnostic comes without the warnings.
+
+# RUN: yaml2obj %s -o %t.o
+# RUN: not ld.lld %t.o -o /dev/null 2>&1 | FileCheck %s
+
+# CHECK-NOT: DWARF
+# CHECK: error: undefined symbol: missing
+# CHECK-NOT: DWARF
+
+--- !ELF
+FileHeader:
+  Class:   ELFCLASS32
+  Data:    ELFDATA2MSB
+  Type:    ET_REL
+  Machine: EM_MIPS
+  Flags:   [ EF_MIPS_ABI2, EF_MIPS_ARCH_4 ]
+Sections:
+  - Name:         .text
+    Type:         SHT_PROGBITS
+    Flags:        [ SHF_ALLOC, SHF_EXECINSTR ]
+    AddressAlign: 16
+    Content:      "0c00000000000000"
+  - Name:         .rela.text
+    Type:         SHT_RELA
+    Link:         .symtab
+    Info:         .text
+    Relocations:
+      - Offset: 0
+        Symbol: missing
+        Type:   R_MIPS_26
+  - Name:         .MIPS.events.text
+    Type:         0x70000021
+    Link:         .text
+    Content:      "00"
+  - Name:         .debug_info
+    Type:         SHT_MIPS_DWARF
+    Content:      "0000000700020000003604"
+  - Name:         .debug_abbrev
+    Type:         SHT_MIPS_DWARF
+    Content:      "00"
+Symbols:
+  - Name:    __start
+    Section: .text
+    Binding: STB_GLOBAL
+  - Name:    missing
+    Binding: STB_GLOBAL

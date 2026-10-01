@@ -1997,7 +1997,8 @@ InputFile *elf::createInternalFile(Ctx &ctx, StringRef name) {
 // reordered locals-first (relocations renumbered to match), each REL section
 // that shares a target with a RELA section merged into it with its implicit
 // addends made explicit, the SGI metadata sections dropped (SHT_NULL, which
-// the parser skips), and gp-relative sections made writable so they sit with
+// the parser skips, and with them the SGI debug information of an object that
+// has them), and gp-relative sections made writable so they sit with
 // .got and .sdata, inside $gp's reach, as on IRIX. A conforming object is
 // returned untouched.
 static constexpr uint32_t SHT_SGI_MIPS_CONTENT = 0x7000000c;
@@ -2077,10 +2078,12 @@ static MemoryBufferRef normalizeSgiObject(Ctx &ctx, MemoryBufferRef mb) {
       reorder = true;
   }
   DenseMap<uint32_t, size_t> relOf, relaOf; // target section -> reloc section
-  bool sgiMeta = false;
+  bool sgiMeta = false, sgiEvents = false;
   for (size_t i = 0; i != secs.size(); ++i) {
     uint32_t t = secs[i].sh_type;
     uint64_t f = secs[i].sh_flags;
+    if (t == SHT_SGI_MIPS_EVENTS || t == SHT_SGI_MIPS_CONTENT)
+      sgiEvents = true;
     if (t == SHT_SGI_MIPS_EVENTS || t == SHT_SGI_MIPS_CONTENT ||
         ((f & SHF_ALLOC) && (f & SHF_MIPS_GPREL) && !(f & SHF_WRITE)))
       sgiMeta = true;
@@ -2201,15 +2204,20 @@ static MemoryBufferRef normalizeSgiObject(Ctx &ctx, MemoryBufferRef mb) {
     newShdrs[relIdx].sh_type = SHT_NULL;
   }
 
-  // SGI's metadata sections and their relocations: dropped.
+  // SGI's metadata sections and their relocations: dropped. So is the debug
+  // information of an object MIPSpro made (it has the metadata): an SGI
+  // DWARF 2 dialect that LLVM's reader warns about whenever lld looks up a
+  // source location for a diagnostic, and that nothing here can use.
+  auto dropped = [&](uint32_t t) {
+    return t == SHT_SGI_MIPS_EVENTS || t == SHT_SGI_MIPS_CONTENT ||
+           (sgiEvents && t == SHT_MIPS_DWARF);
+  };
   for (size_t i = 0; i != secs.size(); ++i) {
     uint32_t t = secs[i].sh_type;
-    bool meta = t == SHT_SGI_MIPS_EVENTS || t == SHT_SGI_MIPS_CONTENT;
+    bool meta = dropped(t);
     if (!meta && (t == SHT_REL || t == SHT_RELA) && secs[i].sh_info &&
-        secs[i].sh_info < secs.size()) {
-      uint32_t tt = secs[secs[i].sh_info].sh_type;
-      meta = tt == SHT_SGI_MIPS_EVENTS || tt == SHT_SGI_MIPS_CONTENT;
-    }
+        secs[i].sh_info < secs.size())
+      meta = dropped(secs[secs[i].sh_info].sh_type);
     if (meta) {
       newShdrs[i].sh_type = SHT_NULL;
       newShdrs[i].sh_flags = 0;
