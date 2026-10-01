@@ -45,6 +45,10 @@
 #define getsockname __irix_libc_getsockname
 #define getpeername __irix_libc_getpeername
 #include_next <sys/socket.h>
+/* IRIX defines sa_len as sa_union.sa_generic.sa_len2, a member it compiles
+ * out (no _HAVE_SA_LEN: the kernel's sockaddr has no length byte). The macro
+ * only takes the name: a variable called sa_len stops compiling (dbus). */
+#undef sa_len
 #undef msghdr
 #undef sendmsg
 #undef recvmsg
