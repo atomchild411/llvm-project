@@ -14,8 +14,10 @@
 #ifndef __CLANG_IRIX_FENV_H
 #define __CLANG_IRIX_FENV_H
 
-#if __has_include_next(<fenv.h>)
-/* IRIX's C99 <fenv.h> comes with MIPSpro 7.3/7.4's headers. */
+#if __has_include_next(<fenv.h>) && defined(__c99)
+/* IRIX's C99 <fenv.h> comes with MIPSpro 7.3/7.4's headers, and stops with
+ * #error unless the compilation is C99 (__c99); gnu89 code (libsoxr) takes
+ * the branch below. */
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -26,7 +28,8 @@ extern "C" {
 
 #else
 /* A root without MIPSpro 7.3+'s headers (a stock 6.5.22 has none, and its
- * libc and libm lack the C99 functions): compiler-rt's (irix/fenv.c), on the
+ * libc and libm lack the C99 functions), or a compilation that is not C99:
+ * compiler-rt's (irix/fenv.c), on the
  * FPU's control and status register. The values are the register's fields
  * as the MIPS architecture defines them: the flag bits and the rounding
  * mode. */
