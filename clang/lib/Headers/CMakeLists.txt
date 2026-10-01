@@ -464,6 +464,7 @@ set(irix_wrapper_net_files
 set(irix_wrapper_netinet_files
   irix_wrappers/netinet/in.h
   irix_wrappers/netinet/ip.h
+  irix_wrappers/netinet/tcp.h
 )
 
 include(GetClangResourceDir)
