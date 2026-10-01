@@ -16,7 +16,27 @@
 /* POSIX 2008 has <sys/stat.h> give struct timespec as <time.h> does; IRIX's
  * X/Open 5 mode names it only once <time.h> is in (utimensat below). */
 #include <time.h>
+/* On n32 outside SGI and XPG5 modes (any program that asks for POSIX or
+ * XPG4), IRIX's struct stat holds st_blocks in a union and #defines
+ * st_blocks to reach its low word, which breaks every other struct with a
+ * member of that name (libuv's uv_stat_t, in cmake), and wraps stat() to
+ * fail with EOVERFLOW past 2^31 blocks.  Read the header as XPG5 instead:
+ * the same layout, with st_blocks a plain 64-bit member, as glibc has it,
+ * and the plain stat().  What it includes is included first, in the
+ * program's own mode. */
+#include <standards.h>
+#include <sgidefs.h>
+#include <sys/types.h>
+#include <sys/timespec.h>
+#if _MIPS_SIM == _ABIN32 && !(_SGIAPI || _XOPEN5 || _ABIAPI) && !defined(_KERNEL)
+#pragma push_macro("_XOPEN5")
+#undef _XOPEN5
+#define _XOPEN5 1
 #include_next <sys/stat.h>
+#pragma pop_macro("_XOPEN5")
+#else
+#include_next <sys/stat.h>
+#endif
 #ifndef UTIME_NOW
 #define UTIME_NOW ((1L << 30) - 1)
 #define UTIME_OMIT ((1L << 30) - 2)
