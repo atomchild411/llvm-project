@@ -777,6 +777,12 @@ unsigned elf::getSectionRank(Ctx &ctx, OutputSection &osec) {
     // because data in these sections is addressable with a gp relative address.
     if (osec.flags & SHF_MIPS_GPREL)
       rank |= 2;
+    // IRIX: .sbss goes before .bss, as SGI's ld (and GNU ld) put it, so it
+    // stays next to the other gp-relative sections; after a large .bss it is
+    // out of $gp's reach. SGI's objects use .sbss freely.
+    if (ctx.arg.osabi == ELFOSABI_IRIX && osec.type == SHT_NOBITS &&
+        !(osec.flags & SHF_MIPS_GPREL))
+      rank |= 4;
   }
 
   if (ctx.arg.emachine == EM_RISCV) {

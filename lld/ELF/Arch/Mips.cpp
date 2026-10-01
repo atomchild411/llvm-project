@@ -105,7 +105,12 @@ RelExpr MIPS<ELFT>::getRelExpr(RelType type, const Symbol &s,
       return R_PC;
     return R_NONE;
   case R_MICROMIPS_JALR:
+  // A hint naming the target of a jump (SGI's compilers emit it); nothing to
+  // relocate.
+  case R_MIPS_PJUMP:
     return R_NONE;
+  // A gp-relative reference to a literal pool entry (.lit4, .lit8): GPREL16.
+  case R_MIPS_LITERAL:
   case R_MIPS_GPREL16:
   case R_MIPS_GPREL32:
   case R_MICROMIPS_GPREL16:
@@ -416,6 +421,7 @@ int64_t MIPS<ELFT>::getImplicitAddend(const uint8_t *buf, RelType type) const {
   case R_MIPS_CALL_LO16:
   case R_MIPS_GOT_LO16:
   case R_MIPS_GPREL16:
+  case R_MIPS_LITERAL:
   case R_MIPS_LO16:
   case R_MIPS_PCLO16:
   case R_MIPS_TLS_DTPREL_HI16:
@@ -636,6 +642,7 @@ void MIPS<ELFT>::relocate(uint8_t *loc, const Relocation &rel,
   case R_MIPS_GOT_DISP:
   case R_MIPS_GOT_PAGE:
   case R_MIPS_GPREL16:
+  case R_MIPS_LITERAL:
   case R_MIPS_TLS_GD:
   case R_MIPS_TLS_GOTTPREL:
   case R_MIPS_TLS_LDM:
