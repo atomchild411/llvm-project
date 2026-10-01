@@ -44,6 +44,7 @@
 #pragma weak nextafterf
 #pragma weak roundeven
 #pragma weak roundevenf
+#pragma weak nexttowardf
 
 
 double nan(const char *tag) {
@@ -121,5 +122,16 @@ double roundeven(double x) {
 }
 
 float roundevenf(float x) { return (float)roundeven(x); }
+
+// No IRIX has it. Toward a long double, which is a double here: the double
+// comparison decides the direction, and nextafterf takes the step.
+float nexttowardf(float x, long double y) {
+  if (x != x || y != y)
+    return x + (float)y;
+  if ((long double)x == y)
+    return (float)y;
+  return nextafterf(x, (long double)x < y ? __builtin_inff()
+                                          : -__builtin_inff());
+}
 
 #endif // defined(__sgi)

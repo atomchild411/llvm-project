@@ -109,6 +109,32 @@ float nextafterf(float, float);
 /* C23, from irix/math_c99.c. */
 double roundeven(double);
 float roundevenf(float);
+/* C99's, in IRIX's libm, which its <math.h> declares only in some modes
+ * (POSIX 2008 mode hides acosh .. trunc; X/Open 7 hides copysign, trunc
+ * and float forms): declared here whatever the mode. */
+double acosh(double);
+double asinh(double);
+double atanh(double);
+double cbrt(double);
+double copysign(double, double);
+double erf(double);
+double erfc(double);
+double expm1(double);
+float expm1f(float);
+double hypot(double, double);
+float hypotf(float, float);
+int ilogb(double);
+double lgamma(double);
+double log1p(double);
+float log1pf(float);
+double logb(double);
+double nextafter(double, double);
+double remainder(double, double);
+double rint(double);
+double trunc(double);
+float truncf(float);
+/* No IRIX has it: irix/math_c99.c. */
+float nexttowardf(float, long double);
 #ifdef __cplusplus
 }
 #endif
