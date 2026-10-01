@@ -15,6 +15,9 @@
 #ifndef __CLANG_IRIX_SYS_SELECT_H
 #define __CLANG_IRIX_SYS_SELECT_H
 
+/* 6.5.22's uses SGI's namespace macros without including their definitions
+ * (<sys/types.h> brings them), which fails when it comes first. */
+#include <sys/types.h>
 #include_next <sys/select.h>
 #include <sys/time.h>
 

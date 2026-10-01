@@ -14,6 +14,11 @@
  *
  * blksize_t, the type of struct stat's st_blksize (a long on IRIX): no IRIX
  * release defines it. Code written since uses it (GLib's GIO).
+ *
+ * With _GNU_SOURCE, _DEFAULT_SOURCE or _BSD_SOURCE, glibc's <sys/types.h>
+ * also gives the BSD types (u_char, ...) and <sys/select.h>'s fd_set, as
+ * IRIX's does in SGI mode; code that asks for them alongside
+ * _POSIX_C_SOURCE or _XOPEN_SOURCE (Python's select module) expects them.
  */
 
 #ifndef __CLANG_IRIX_SYS_TYPES_H
@@ -28,6 +33,11 @@ typedef long suseconds_t;
 #ifndef __CLANG_IRIX_BLKSIZE_T
 #define __CLANG_IRIX_BLKSIZE_T
 typedef long blksize_t;
+#endif
+
+#if defined(_GNU_SOURCE) || defined(_DEFAULT_SOURCE) || defined(_BSD_SOURCE)
+#include <sys/bsd_types.h>
+#include <sys/select.h>
 #endif
 
 #endif /* __CLANG_IRIX_SYS_TYPES_H */
