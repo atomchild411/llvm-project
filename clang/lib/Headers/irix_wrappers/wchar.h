@@ -12,8 +12,8 @@
  *
  * Before 6.5.22 it also has only C89's wide-character functions. Declare
  * C95's and C99's that C and C++ libraries use (the wmem* family, btowc and
- * wctob, iswblank, the restartable conversions, wcstof, swprintf
- * and vswprintf, fwide), which compiler-rt's builtins define.
+ * wctob, iswblank, the restartable conversions, wcstof, the wide printf
+ * family, fwide), which compiler-rt's builtins define.
  */
 
 #ifndef __CLANG_IRIX_WCHAR_H
@@ -91,10 +91,25 @@ int vswprintf(wchar_t *__restrict, size_t, const wchar_t *__restrict,
               __builtin_va_list);
 int swprintf(wchar_t *__restrict, size_t, const wchar_t *__restrict, ...);
 int fwide(FILE *, int);
+int vfwprintf(FILE *__restrict, const wchar_t *__restrict, __builtin_va_list);
+int fwprintf(FILE *__restrict, const wchar_t *__restrict, ...);
+int vwprintf(const wchar_t *__restrict, __builtin_va_list);
+int wprintf(const wchar_t *__restrict, ...);
 #ifdef __cplusplus
 }
 #endif
 #endif /* __IRIX_VERSION__ < 60522 */
+
+/* POSIX 2008's, which no IRIX has: compiler-rt's (irix/libc_compat.c). */
+#ifdef __cplusplus
+extern "C" {
+#endif
+size_t wcsnlen(const wchar_t *, size_t);
+wchar_t *wcsdup(const wchar_t *);
+int wcscasecmp(const wchar_t *, const wchar_t *);
+#ifdef __cplusplus
+}
+#endif
 
 /* clang's long double is a double on IRIX, so wcstold is wcstod (6.5.22's
  * own returns MIPSpro's long double, a pair of doubles). */

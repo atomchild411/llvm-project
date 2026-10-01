@@ -8,9 +8,10 @@
 //
 // IRIX before 6.5.22 has only C89's wide-character functions. These are the
 // C95 and C99 ones C and C++ libraries use, declared by clang's IRIX
-// <wchar.h> wrapper, POSIX 2008's strnlen, declared by its <string.h>, and
-// C99's strtoimax, strtoumax and imaxabs, which IRIX's <inttypes.h> declares
-// (in its own API mode only) but no IRIX library defines. They live here, in the builtins every IRIX link takes,
+// <wchar.h> wrapper; POSIX 2008's strnlen, wcsnlen, wcsdup and wcscasecmp,
+// which no IRIX has; and C99's strtoimax, strtoumax and imaxabs, which
+// IRIX's <inttypes.h> declares (in its own API mode only) but no IRIX
+// library defines. They live here, in the builtins every IRIX link takes,
 // so that a program built for 6.5.7 runs there; a libc that has them wins,
 // since an archive member is only taken for a symbol nothing else defines.
 // Calls reach them by name, too: clang lowers __builtin_wmemcmp and friends
@@ -31,6 +32,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <wchar.h>
+#include <wctype.h>
 
 // Weak: a program that brings its own copy (a compat/ directory) keeps it,
 // while still getting the rest of this file.
@@ -51,7 +53,14 @@
 #pragma weak wcstof
 #pragma weak vswprintf
 #pragma weak swprintf
+#pragma weak vfwprintf
+#pragma weak fwprintf
+#pragma weak vwprintf
+#pragma weak wprintf
 #pragma weak fwide
+#pragma weak wcsdup
+#pragma weak wcsnlen
+#pragma weak wcscasecmp
 #pragma weak strnlen
 #pragma weak strtoimax
 #pragma weak strtoumax
@@ -183,33 +192,43 @@ float wcstof(const wchar_t *__restrict s, wchar_t **__restrict end) {
   return (float)wcstod(s, end);
 }
 
-/* The format and the output are converted to and from the multibyte
- * encoding around vsnprintf, so %ls and %lc arguments are not supported.
- * Returns the characters written, or -1 if they did not fit, as C99 says. */
-int vswprintf(wchar_t *__restrict s, size_t n,
-              const wchar_t *__restrict fmt,
-                                __builtin_va_list ap) {
+/* The wide printf family on IRIX's printf: the format is converted to the
+ * multibyte encoding, formatted by vsnprintf (which takes %ls and %lc), and
+ * the output converted back where it goes to a wide string. Returns the
+ * output in memory from malloc, or 0. */
+static char *wfmt(const wchar_t *fmt, __builtin_va_list ap) {
   size_t flen = wcstombs(0, fmt, 0);
-  char *f, *buf;
+  char *f, *buf = 0;
   int len;
-  size_t w;
   __builtin_va_list ap2;
-  if (flen == (size_t)-1 || n == 0)
-    return -1;
+  if (flen == (size_t)-1)
+    return 0;
   f = (char *)malloc(flen + 1);
   if (f == 0)
-    return -1;
+    return 0;
   wcstombs(f, fmt, flen + 1);
   __builtin_va_copy(ap2, ap);
   len = vsnprintf(0, 0, f, ap2); /* C99 vsnprintf (see <stdio.h>) */
   __builtin_va_end(ap2);
-  buf = len < 0 ? 0 : (char *)malloc((size_t)len + 1);
-  if (buf == 0) {
-    free(f);
-    return -1;
-  }
-  vsnprintf(buf, (size_t)len + 1, f, ap);
+  if (len >= 0)
+    buf = (char *)malloc((size_t)len + 1);
+  if (buf != 0)
+    vsnprintf(buf, (size_t)len + 1, f, ap);
   free(f);
+  return buf;
+}
+
+/* Returns the characters written, or -1 if they did not fit, as C99 says. */
+int vswprintf(wchar_t *__restrict s, size_t n,
+              const wchar_t *__restrict fmt,
+                                __builtin_va_list ap) {
+  char *buf;
+  size_t w;
+  if (n == 0)
+    return -1;
+  buf = wfmt(fmt, ap);
+  if (buf == 0)
+    return -1;
   w = mbstowcs(s, buf, n);
   free(buf);
   if (w == (size_t)-1 || w >= n) {
@@ -226,6 +245,61 @@ int swprintf(wchar_t *__restrict s, size_t n,
   r = vswprintf(s, n, fmt, ap);
   __builtin_va_end(ap);
   return r;
+}
+
+/* Return the wide characters written, as C99 says. */
+int vfwprintf(FILE *__restrict f, const wchar_t *__restrict fmt,
+              __builtin_va_list ap) {
+  char *buf = wfmt(fmt, ap);
+  size_t w;
+  if (buf == 0)
+    return -1;
+  w = mbstowcs(0, buf, 0);
+  if (fputs(buf, f) == EOF)
+    w = (size_t)-1;
+  free(buf);
+  return w == (size_t)-1 ? -1 : (int)w;
+}
+int fwprintf(FILE *__restrict f, const wchar_t *__restrict fmt, ...) {
+  __builtin_va_list ap;
+  int r;
+  __builtin_va_start(ap, fmt);
+  r = vfwprintf(f, fmt, ap);
+  __builtin_va_end(ap);
+  return r;
+}
+int vwprintf(const wchar_t *__restrict fmt, __builtin_va_list ap) {
+  return vfwprintf(stdout, fmt, ap);
+}
+int wprintf(const wchar_t *__restrict fmt, ...) {
+  __builtin_va_list ap;
+  int r;
+  __builtin_va_start(ap, fmt);
+  r = vfwprintf(stdout, fmt, ap);
+  __builtin_va_end(ap);
+  return r;
+}
+
+/* POSIX 2008's, which no IRIX has. */
+size_t wcsnlen(const wchar_t *s, size_t n) {
+  size_t i;
+  for (i = 0; i < n && s[i]; ++i)
+    ;
+  return i;
+}
+wchar_t *wcsdup(const wchar_t *s) {
+  size_t n = (wcslen(s) + 1) * sizeof(wchar_t);
+  wchar_t *d = (wchar_t *)malloc(n);
+  return d ? (wchar_t *)memcpy(d, s, n) : 0;
+}
+int wcscasecmp(const wchar_t *a, const wchar_t *b) {
+  for (;; ++a, ++b) {
+    wint_t x = towlower(*a), y = towlower(*b);
+    if (x != y)
+      return x < y ? -1 : 1;
+    if (x == 0)
+      return 0;
+  }
 }
 
 /* IRIX streams have no orientation: report none. */
