@@ -38,4 +38,26 @@
 #endif
 #include <sys/time.h>
 
+/* IRIX gives struct timeval and select() only in X/Open, SGI and BSD modes.
+ * POSIX.1-2001 has both in <sys/select.h> without X/Open, so a program that
+ * asks for _POSIX_C_SOURCE 200112L alone (mpg123) gets neither: declare them
+ * here, the same layout and the same function. */
+#if !(_XOPEN4UX || defined(_BSD_TYPES) || defined(_BSD_COMPAT)) &&             \
+    defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE + 0 >= 200112L
+#ifndef _TIMEVAL_T
+#define _TIMEVAL_T
+struct timeval {
+#if _MIPS_SZLONG == 64
+  int : 32;
+#endif
+  time_t tv_sec;
+  long tv_usec;
+};
+#endif
+#ifdef __cplusplus
+extern "C"
+#endif
+int select(int, fd_set *, fd_set *, fd_set *, struct timeval *);
+#endif
+
 #endif /* __CLANG_IRIX_SYS_SELECT_H */
