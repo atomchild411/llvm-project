@@ -19,6 +19,7 @@
 extern "C" {
 #endif
 int dirfd(DIR *);
+DIR *fdopendir(int); /* irix/atfile.c */
 #ifdef __cplusplus
 }
 #endif

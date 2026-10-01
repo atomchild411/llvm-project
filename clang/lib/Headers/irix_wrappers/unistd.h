@@ -38,6 +38,13 @@ extern "C" {
 #endif
 void _exit(int) __attribute__((__noreturn__));
 long sysconf(int) __asm__("__irix_sysconf");
+/* POSIX 2008's (compiler-rt's irix/atfile.c; AT_ constants in <fcntl.h>). */
+int faccessat(int, const char *, int, int);
+int fchownat(int, const char *, uid_t, gid_t, int);
+int linkat(int, const char *, int, const char *, int);
+ssize_t readlinkat(int, const char *__restrict, char *__restrict, size_t);
+int symlinkat(const char *, int, const char *);
+int unlinkat(int, const char *, int);
 #ifdef __cplusplus
 }
 #endif

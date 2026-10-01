@@ -257,6 +257,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "IRIX")
     irix/spawn.c
     irix/getopt_long.c
     irix/posix2008.c
+    irix/atfile.c
     irix/math_c99.c
     irix/mman.c
     irix/err.c

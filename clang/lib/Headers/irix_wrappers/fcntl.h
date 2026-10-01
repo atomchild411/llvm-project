@@ -17,6 +17,8 @@
  * just before opening -- not atomic against the link changing in between.
  * And O_DIRECTORY: what was opened must be a directory, or the open fails
  * with ENOTDIR (checked with fstat on the descriptor, so exactly).
+ *
+ * And the AT_ constants and openat (below).
  */
 
 #ifndef __CLANG_IRIX_FCNTL_H
@@ -43,6 +45,26 @@ int open(const char *, int, ...) __asm__("__irix_open");
 #ifdef __cplusplus
 }
 #endif
+#endif
+
+/* POSIX 2008's directory-relative calls, which no IRIX has: compiler-rt's
+ * irix/atfile.c (which says how they work and what they cannot do). The
+ * rest are declared by <sys/stat.h>, <unistd.h>, <stdio.h> and <dirent.h>.
+ * The values are Linux's: AT_FDCWD is no descriptor, and AT_EACCESS and
+ * AT_REMOVEDIR go to different calls. */
+#ifndef AT_FDCWD
+#define AT_FDCWD (-100)
+#define AT_SYMLINK_NOFOLLOW 0x100
+#define AT_REMOVEDIR 0x200
+#define AT_EACCESS 0x200
+#define AT_SYMLINK_FOLLOW 0x400
+#endif
+#ifdef __cplusplus
+extern "C" {
+#endif
+int openat(int, const char *, int, ...);
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* __CLANG_IRIX_FCNTL_H */

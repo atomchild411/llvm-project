@@ -150,6 +150,7 @@ int asprintf(char **, const char *, ...)
     __attribute__((__format__(__printf__, 2, 3)));
 int vasprintf(char **, const char *, __builtin_va_list)
     __attribute__((__format__(__printf__, 2, 0)));
+int renameat(int, const char *, int, const char *); /* irix/atfile.c */
 #ifdef __cplusplus
 }
 #endif

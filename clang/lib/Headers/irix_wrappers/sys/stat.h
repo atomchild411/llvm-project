@@ -9,14 +9,27 @@
  * lchmod (the BSDs and glibc have it; IRIX does not): compiler-rt's
  * irix/compat_bsd.c, which changes the mode of anything but a symbolic link
  * and fails with ENOTSUP for a link, as glibc does where the kernel cannot.
+ * And POSIX 2008's fstatat and friends, with UTIME_NOW and UTIME_OMIT.
  */
 #ifndef __CLANG_IRIX_SYS_STAT_H
 #define __CLANG_IRIX_SYS_STAT_H
 #include_next <sys/stat.h>
+#ifndef UTIME_NOW
+#define UTIME_NOW ((1L << 30) - 1)
+#define UTIME_OMIT ((1L << 30) - 2)
+#endif
 #ifdef __cplusplus
 extern "C" {
 #endif
 int lchmod(const char *, mode_t);
+/* POSIX 2008's (compiler-rt's irix/atfile.c; AT_ constants in <fcntl.h>).
+ * No futimens: IRIX cannot set a descriptor's times. */
+int fstatat(int, const char *, struct stat *, int);
+int fchmodat(int, const char *, mode_t, int);
+int mkdirat(int, const char *, mode_t);
+int mknodat(int, const char *, mode_t, dev_t);
+int mkfifoat(int, const char *, mode_t);
+int utimensat(int, const char *, const struct timespec[2], int);
 #ifdef __cplusplus
 }
 #endif
