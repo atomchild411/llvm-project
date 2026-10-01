@@ -32,7 +32,17 @@ int fchmodat(int, const char *, mode_t, int);
 int mkdirat(int, const char *, mode_t);
 int mknodat(int, const char *, mode_t, dev_t);
 int mkfifoat(int, const char *, mode_t);
-int utimensat(int, const char *, const struct timespec[2], int);
+/* IRIX names the struct timespec only in POSIX.1b and later X/Open modes
+ * (its <sys/timespec.h>), __timespec otherwise; a pointer (what the
+ * array parameter is) needs the tag only, not the definition, which an
+ * include cycle can leave for later. */
+#if _POSIX93 || _ABIAPI || _XOPEN5
+struct timespec;
+int utimensat(int, const char *, const struct timespec *, int);
+#else
+struct __timespec;
+int utimensat(int, const char *, const struct __timespec *, int);
+#endif
 #ifdef __cplusplus
 }
 #endif

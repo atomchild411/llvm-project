@@ -62,11 +62,22 @@ typedef struct {
   __uint32_t __sigbits[4];
 } sigset_t;
 #endif
-struct timespec;
+/* The timespec tag IRIX uses in this mode, as in <sys/stat.h>: IRIX's
+ * <sys/types.h> includes this header, so <sys/timespec.h> cannot be. */
 #ifdef __cplusplus
-extern "C"
+extern "C" {
 #endif
+#if _POSIX93 || _ABIAPI || _XOPEN5
+struct timespec;
 int pselect(int, fd_set *, fd_set *, fd_set *, const struct timespec *,
             const sigset_t *);
+#else
+struct __timespec;
+int pselect(int, fd_set *, fd_set *, fd_set *, const struct __timespec *,
+            const sigset_t *);
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __CLANG_IRIX_SYS_SELECT_H */

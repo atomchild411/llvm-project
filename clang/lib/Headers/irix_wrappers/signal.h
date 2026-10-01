@@ -38,7 +38,9 @@ void (*sigset(int, void (*)(int)))(int);
 #ifdef __cplusplus
 extern "C" {
 #endif
+#if _POSIX93 || _XOPEN4UX || _XOPEN5 /* where IRIX defines siginfo_t */
 void psiginfo(siginfo_t *, const char *);
+#endif
 void psignal(int, const char *);
 int pthread_sigmask(int, const sigset_t *, sigset_t *);
 #ifdef __cplusplus
