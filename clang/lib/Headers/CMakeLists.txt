@@ -432,7 +432,7 @@ set(irix_wrapper_internal_files
 set(irix_wrapper_sys_files
   irix_wrappers/sys/endian.h
   irix_wrappers/sys/file.h
-  irix_wrappers/sys/ioctl.h
+  irix_wrappers/sys/termios.h
   irix_wrappers/sys/mman.h
   irix_wrappers/sys/select.h
   irix_wrappers/sys/socket.h
