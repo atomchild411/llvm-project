@@ -132,6 +132,17 @@ public:
     PtrDiffType = IntPtrType = SignedInt;
     SizeType = UnsignedInt;
     SuitableAlign = 64;
+    setIRIXLong32Types();
+  }
+
+  // IRIX's headers, wherever long is 32 bits (o32 and n32), make wchar_t,
+  // wint_t and intptr_t long, as GCC's IRIX port did: the same size as int,
+  // but a type of its own, so L"" and __INTPTR_TYPE__ have to agree.
+  void setIRIXLong32Types() {
+    if (getTriple().isOSIRIX()) {
+      WCharType = WIntType = SignedLong;
+      IntPtrType = SignedLong;
+    }
   }
 
   void setN32N64ABITypes() {
@@ -140,8 +151,8 @@ public:
     // IRIX: double too. IRIX's own long double (MIPSpro's n32/n64) is a
     // pair of doubles that clang cannot represent; IEEE quad there meant
     // that every long double crossing into libc (printf %Lf, scanf, strtold,
-    // libm's *l) was misread. clang's IRIX wrappers and compiler-rt's
-    // irix/ldbl.c send those through the double functions instead.
+    // libm's *l) was misread. clang's IRIX wrappers and CodeGen's builtin
+    // names send those through the double functions instead.
     if (getTriple().isOSFreeBSD() || getTriple().isOSIRIX()) {
       LongDoubleWidth = LongDoubleAlign = 64;
       LongDoubleFormat = &llvm::APFloat::IEEEdouble();
@@ -172,6 +183,7 @@ public:
     PointerWidth = PointerAlign = 32;
     PtrDiffType = IntPtrType = SignedInt;
     SizeType = UnsignedInt;
+    setIRIXLong32Types();
   }
 
   bool isValidCPUName(StringRef Name) const override;
