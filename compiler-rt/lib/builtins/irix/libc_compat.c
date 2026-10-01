@@ -32,6 +32,33 @@
 #include <string.h>
 #include <wchar.h>
 
+// Weak: a program that brings its own copy (a compat/ directory) keeps it,
+// while still getting the rest of this file.
+#pragma weak wmemchr
+#pragma weak wmemcmp
+#pragma weak wmemcpy
+#pragma weak wmemmove
+#pragma weak wmemset
+#pragma weak btowc
+#pragma weak wctob
+#pragma weak iswblank
+#pragma weak mbsinit
+#pragma weak mbrtowc
+#pragma weak mbrlen
+#pragma weak wcrtomb
+#pragma weak mbsrtowcs
+#pragma weak wcsrtombs
+#pragma weak wcstof
+#pragma weak wcstold
+#pragma weak vswprintf
+#pragma weak swprintf
+#pragma weak fwide
+#pragma weak strnlen
+#pragma weak strtoimax
+#pragma weak strtoumax
+#pragma weak imaxabs
+
+
 wchar_t *wmemchr(const wchar_t *s, wchar_t c, size_t n) {
   for (; n; ++s, --n)
     if (*s == c)

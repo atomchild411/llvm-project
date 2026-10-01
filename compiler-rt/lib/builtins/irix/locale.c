@@ -31,6 +31,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+// Weak: a program that brings its own copy (a compat/ directory) keeps it,
+// while still getting the rest of this file.
+#pragma weak newlocale
+#pragma weak duplocale
+#pragma weak freelocale
+#pragma weak uselocale
+
+
 struct __irix_locale {
   int unused;
 };

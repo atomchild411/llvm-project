@@ -31,6 +31,12 @@
 #include <stddef.h>
 #include <string.h>
 
+// Weak: a program that brings its own copy (a compat/ directory) keeps it,
+// while still getting the rest of this file.
+#pragma weak getprogname
+#pragma weak setprogname
+
+
 extern char **__Argv __attribute__((weak));
 
 static const char *progname;

@@ -26,6 +26,14 @@
 #include <time.h>
 #include <unistd.h>
 
+// Weak: a program that brings its own copy (a compat/ directory) keeps it,
+// while still getting the rest of this file.
+#pragma weak memmem
+#pragma weak mkdtemp
+#pragma weak basename
+#pragma weak dirname
+
+
 void *memmem(const void *haystack, size_t hlen, const void *needle,
              size_t nlen) {
   const unsigned char *h = (const unsigned char *)haystack;

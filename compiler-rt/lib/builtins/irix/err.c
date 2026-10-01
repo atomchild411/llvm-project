@@ -24,6 +24,18 @@
 #include <stdlib.h>
 #include <string.h>
 
+// Weak: a program that brings its own copy (a compat/ directory) keeps it,
+// while still getting the rest of this file.
+#pragma weak vwarn
+#pragma weak vwarnx
+#pragma weak verr
+#pragma weak verrx
+#pragma weak warn
+#pragma weak warnx
+#pragma weak err
+#pragma weak errx
+
+
 extern const char *getprogname(void);
 
 static void message(int with_errno, int e, const char *fmt, va_list ap) {

@@ -38,6 +38,33 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+// Weak: a program that brings its own copy (a compat/ directory) keeps it,
+// while still getting the rest of this file.
+#pragma weak posix_spawn_file_actions_init
+#pragma weak posix_spawn_file_actions_destroy
+#pragma weak posix_spawn_file_actions_addopen
+#pragma weak posix_spawn_file_actions_addclose
+#pragma weak posix_spawn_file_actions_adddup2
+#pragma weak posix_spawn_file_actions_addchdir
+#pragma weak posix_spawn_file_actions_addfchdir
+#pragma weak posix_spawnattr_init
+#pragma weak posix_spawnattr_destroy
+#pragma weak posix_spawnattr_getflags
+#pragma weak posix_spawnattr_setflags
+#pragma weak posix_spawnattr_getpgroup
+#pragma weak posix_spawnattr_setpgroup
+#pragma weak posix_spawnattr_getsigdefault
+#pragma weak posix_spawnattr_setsigdefault
+#pragma weak posix_spawnattr_getsigmask
+#pragma weak posix_spawnattr_setsigmask
+#pragma weak posix_spawnattr_getschedparam
+#pragma weak posix_spawnattr_setschedparam
+#pragma weak posix_spawnattr_getschedpolicy
+#pragma weak posix_spawnattr_setschedpolicy
+#pragma weak posix_spawn
+#pragma weak posix_spawnp
+
+
 extern char **environ;
 
 enum { ACTION_OPEN, ACTION_CLOSE, ACTION_DUP2, ACTION_CHDIR, ACTION_FCHDIR };

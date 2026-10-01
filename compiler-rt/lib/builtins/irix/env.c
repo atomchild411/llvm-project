@@ -24,6 +24,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+// Weak: a program that brings its own copy (a compat/ directory) keeps it,
+// while still getting the rest of this file.
+#pragma weak setenv
+#pragma weak unsetenv
+
+
 extern char **environ;
 
 static int valid_name(const char *name) {

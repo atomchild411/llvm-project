@@ -39,6 +39,29 @@
 #include <time.h>
 #include <unistd.h>
 
+// Weak: a program that brings its own copy (a compat/ directory) keeps it,
+// while still getting the rest of this file.
+#pragma weak strndup
+#pragma weak stpcpy
+#pragma weak stpncpy
+#pragma weak strsep
+#pragma weak strcasestr
+#pragma weak explicit_bzero
+#pragma weak strerror_r
+#pragma weak getdelim
+#pragma weak getline
+#pragma weak vasprintf
+#pragma weak asprintf
+#pragma weak vdprintf
+#pragma weak dprintf
+#pragma weak posix_memalign
+#pragma weak aligned_alloc
+#pragma weak mkostemp
+#pragma weak reallocarray
+#pragma weak timegm
+#pragma weak dirfd
+
+
 extern void *memalign(size_t, size_t);
 
 // --- <string.h> -------------------------------------------------------------

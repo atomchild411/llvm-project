@@ -34,6 +34,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+// Weak: a program that brings its own copy (a compat/ directory) keeps it,
+// while still getting the rest of this file.
+#pragma weak getopt_long
+#pragma weak getopt_long_only
+
+
 int optreset;
 
 static const char *nextchar; // the rest of a group of short options

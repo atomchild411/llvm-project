@@ -35,6 +35,16 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
+// Weak: a program that brings its own copy (a compat/ directory) keeps it,
+// while still getting the rest of this file.
+#pragma weak freeaddrinfo
+#pragma weak getaddrinfo
+#pragma weak gai_strerror
+#pragma weak getnameinfo
+#pragma weak if_nametoindex
+#pragma weak if_indextoname
+
+
 extern int inet_pton(int, const char *, void *);
 extern const char *inet_ntop(int, const void *, char *, size_t);
 

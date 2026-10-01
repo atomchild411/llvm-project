@@ -26,6 +26,26 @@
 #include <stdint.h>
 #include <string.h>
 
+// Weak: a program that brings its own copy (a compat/ directory) keeps it,
+// while still getting the rest of this file.
+#pragma weak nan
+#pragma weak nanf
+#pragma weak nearbyint
+#pragma weak nearbyintf
+#pragma weak fmax
+#pragma weak fmin
+#pragma weak fmaxf
+#pragma weak fminf
+#pragma weak frexpf
+#pragma weak ldexpf
+#pragma weak fabsf
+#pragma weak ilogbf
+#pragma weak logbf
+#pragma weak nextafterf
+#pragma weak roundeven
+#pragma weak roundevenf
+
+
 double nan(const char *tag) {
   (void)tag;
   return __builtin_nan("");
