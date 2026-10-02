@@ -47,6 +47,23 @@ int open(const char *, int, ...) __asm__("__irix_open");
 #endif
 #endif
 
+/* F_DUPFD_CLOEXEC, which IRIX's fcntl() lacks: Linux's command number, which
+ * IRIX does not use, and fcntl() routed to compiler-rt's IRIX builtins
+ * (irix/fcntl.c), which duplicate with F_DUPFD and then set FD_CLOEXEC (not
+ * atomic against a fork in another thread) and pass every other command to
+ * IRIX's fcntl(). */
+#ifndef F_DUPFD_CLOEXEC
+#define F_DUPFD_CLOEXEC 1030
+#define __IRIX_F_DUPFD_CLOEXEC F_DUPFD_CLOEXEC
+#ifdef __cplusplus
+extern "C" {
+#endif
+int fcntl(int, int, ...) __asm__("__irix_fcntl");
+#ifdef __cplusplus
+}
+#endif
+#endif
+
 /* POSIX 2008's directory-relative calls, which no IRIX has: compiler-rt's
  * irix/atfile.c (which says how they work and what they cannot do). The
  * rest are declared by <sys/stat.h>, <unistd.h>, <stdio.h> and <dirent.h>.
