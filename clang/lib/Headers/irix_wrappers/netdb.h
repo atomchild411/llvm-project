@@ -49,6 +49,9 @@ struct addrinfo {
 #define NI_MAXHOST 1025
 #define NI_MAXSERV 32
 
+/* EAI_ADDRFAMILY is BSD's 1: never returned here, but programs compare
+ * against it (ruby). */
+#define EAI_ADDRFAMILY 1
 #define EAI_AGAIN 2
 #define EAI_BADFLAGS 3
 #define EAI_FAIL 4
