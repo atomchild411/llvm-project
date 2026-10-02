@@ -57,9 +57,21 @@
 #undef msg_control
 #undef msg_controllen
 
+#ifndef _SOCKLEN_T
+#define _SOCKLEN_T
+#if _NO_XOPEN4
+typedef int socklen_t;
+#else
+typedef size_t socklen_t;
+#endif
+#endif
+
+/* msg_namelen is a socklen_t, as POSIX has it (code such as asio passes its
+ * address to accept()): int or size_t, 32 bits either way, as the
+ * kernel's. */
 struct msghdr {
   void *msg_name;
-  size_t msg_namelen;
+  socklen_t msg_namelen;
   struct iovec *msg_iov;
   int msg_iovlen;
   void *msg_control;
@@ -84,15 +96,6 @@ ssize_t recvmsg(int, struct msghdr *, int) __asm__("__irix_recvmsg");
 #endif
 #ifndef SCM_RIGHTS
 #define SCM_RIGHTS 0x01
-#endif
-
-#ifndef _SOCKLEN_T
-#define _SOCKLEN_T
-#if _NO_XOPEN4
-typedef int socklen_t;
-#else
-typedef size_t socklen_t;
-#endif
 #endif
 
 #if _MIPS_SZLONG == 32
