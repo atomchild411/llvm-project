@@ -272,6 +272,14 @@ if(CMAKE_SYSTEM_NAME STREQUAL "IRIX")
     irix/process_bsd.c
     irix/locale_l.c
   )
+  # They stand in for libc's functions, so they keep default visibility: a
+  # shared library linked without the builtins (libtool links C++ libraries
+  # with -nostdlib) leaves them undefined, and the program that links them
+  # from here then has to export them to it, as libc would.
+  set(irix_compat_sources ${GENERIC_SOURCES})
+  list(FILTER irix_compat_sources INCLUDE REGEX "^irix/")
+  set_source_files_properties(${irix_compat_sources}
+    PROPERTIES COMPILE_OPTIONS -fvisibility=default)
 endif()
 
 if(NOT FUCHSIA AND NOT COMPILER_RT_BAREMETAL_BUILD AND NOT COMPILER_RT_GPU_BUILD)
