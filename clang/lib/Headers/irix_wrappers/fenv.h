@@ -6,33 +6,20 @@
  *
  *===-----------------------------------------------------------------------===
  *
- * IRIX's <fenv.h> declares libm's functions without extern "C", so C++
- * callers would look for mangled names libm does not have. Give them C
- * linkage.
+ * IRIX's own <fenv.h> comes only with MIPSpro 7.3/7.4's headers, and is a
+ * draft of C99's: feclearexcept, fegetexceptflag, feraiseexcept,
+ * fesetexceptflag, fegetenv, fesetenv and feupdateenv return void, and all
+ * of them are optional (a stock 6.5.22 libm has none). Code written to C99
+ * (hdf5: `if (feclearexcept(FE_INVALID) != 0)`) does not compile against it.
+ * Never use it: declare C99's functions, as compiler-rt implements them
+ * (irix/fenv.c) on the FPU's control and status register.
  */
 
 #ifndef __CLANG_IRIX_FENV_H
 #define __CLANG_IRIX_FENV_H
 
-#if __has_include_next(<fenv.h>) && defined(__c99)
-/* IRIX's C99 <fenv.h> comes with MIPSpro 7.3/7.4's headers, and stops with
- * #error unless the compilation is C99 (__c99); gnu89 code (libsoxr) takes
- * the branch below. */
-#ifdef __cplusplus
-extern "C" {
-#endif
-#include_next <fenv.h>
-#ifdef __cplusplus
-}
-#endif
-
-#else
-/* A root without MIPSpro 7.3+'s headers (a stock 6.5.22 has none, and its
- * libc and libm lack the C99 functions), or a compilation that is not C99:
- * compiler-rt's (irix/fenv.c), on the
- * FPU's control and status register. The values are the register's fields
- * as the MIPS architecture defines them: the flag bits and the rounding
- * mode. */
+/* The values are the register's fields as the MIPS architecture defines
+ * them: the flag bits and the rounding mode. */
 typedef unsigned int fenv_t;    /* the whole control and status register */
 typedef unsigned int fexcept_t; /* its flag bits */
 
@@ -66,7 +53,6 @@ int fesetenv(const fenv_t *) __asm__("__irix_fesetenv");
 int feupdateenv(const fenv_t *) __asm__("__irix_feupdateenv");
 #ifdef __cplusplus
 }
-#endif
 #endif
 
 #endif /* __CLANG_IRIX_FENV_H */
