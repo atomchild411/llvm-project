@@ -432,6 +432,7 @@ set(irix_wrapper_files
   irix_wrappers/unistd.h
   irix_wrappers/uuid.h
   irix_wrappers/wchar.h
+  irix_wrappers/complex.h
 )
 
 # Installed under irix_wrappers/internal/ (the install below flattens a list).
@@ -443,6 +444,8 @@ set(irix_wrapper_internal_files
 set(irix_wrapper_sys_files
   irix_wrappers/sys/bitypes.h
   irix_wrappers/sys/endian.h
+  irix_wrappers/sys/queue.h
+  irix_wrappers/sys/un.h
   irix_wrappers/sys/file.h
   irix_wrappers/sys/ipc.h
   irix_wrappers/sys/wait.h
@@ -469,6 +472,10 @@ set(irix_wrapper_netinet_files
   irix_wrappers/netinet/in.h
   irix_wrappers/netinet/ip.h
   irix_wrappers/netinet/tcp.h
+)
+# Installed under irix_wrappers/machine/.
+set(irix_wrapper_machine_files
+  irix_wrappers/machine/endian.h
 )
 
 include(GetClangResourceDir)
@@ -519,7 +526,7 @@ endfunction(clang_generate_header)
 
 # Copy header files from the source directory to the build directory
 foreach( f ${files} ${cuda_wrapper_files} ${cuda_wrapper_bits_files}
-           ${ppc_wrapper_files} ${openmp_wrapper_files} ${zos_wrapper_files} ${irix_wrapper_files} ${irix_wrapper_internal_files} ${irix_wrapper_sys_files} ${irix_wrapper_arpa_files} ${irix_wrapper_net_files} ${irix_wrapper_netinet_files} ${hlsl_files}
+           ${ppc_wrapper_files} ${openmp_wrapper_files} ${zos_wrapper_files} ${irix_wrapper_files} ${irix_wrapper_internal_files} ${irix_wrapper_sys_files} ${irix_wrapper_arpa_files} ${irix_wrapper_net_files} ${irix_wrapper_netinet_files} ${irix_wrapper_machine_files} ${hlsl_files}
 	   ${llvm_libc_wrapper_files} ${llvm_offload_wrapper_files})
   copy_header_to_output_dir(${CMAKE_CURRENT_SOURCE_DIR} ${f})
 endforeach( f )
@@ -633,7 +640,7 @@ add_header_target("cuda-resource-headers" "${cuda_files};${cuda_wrapper_files};$
 add_header_target("hexagon-resource-headers" "${hexagon_files}")
 add_header_target("hip-resource-headers" "${hip_files}")
 add_header_target("loongarch-resource-headers" "${loongarch_files}")
-add_header_target("mips-resource-headers" "${mips_msa_files};${irix_wrapper_files};${irix_wrapper_internal_files};${irix_wrapper_sys_files};${irix_wrapper_arpa_files};${irix_wrapper_net_files};${irix_wrapper_netinet_files}")
+add_header_target("mips-resource-headers" "${mips_msa_files};${irix_wrapper_files};${irix_wrapper_internal_files};${irix_wrapper_sys_files};${irix_wrapper_arpa_files};${irix_wrapper_net_files};${irix_wrapper_netinet_files};${irix_wrapper_machine_files}")
 add_header_target("ppc-resource-headers" "${ppc_files};${ppc_wrapper_files}")
 add_header_target("ppc-htm-resource-headers" "${ppc_htm_files}")
 add_header_target("riscv-resource-headers" "${riscv_files};${riscv_generated_files}")
@@ -729,6 +736,11 @@ install(
 install(
   FILES ${irix_wrapper_netinet_files}
   DESTINATION ${header_install_dir}/irix_wrappers/netinet
+  COMPONENT clang-resource-headers)
+
+install(
+  FILES ${irix_wrapper_machine_files}
+  DESTINATION ${header_install_dir}/irix_wrappers/machine
   COMPONENT clang-resource-headers)
 
 #############################################################

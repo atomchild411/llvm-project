@@ -29,6 +29,13 @@
 #define INET_ADDRSTRLEN 16
 #endif
 
+/* SCTP's IANA protocol number, which Linux and the BSDs define whether or
+ * not they support SCTP, and Erlang uses unconditionally.  IRIX has no SCTP:
+ * a socket asked for it fails with EPROTONOSUPPORT. */
+#ifndef IPPROTO_SCTP
+#define IPPROTO_SCTP 132
+#endif
+
 #if !defined(INET6) && !defined(IN6ADDR_ANY_INIT)
 #include <sys/socket.h>
 
