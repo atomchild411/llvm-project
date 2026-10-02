@@ -417,6 +417,7 @@ set(irix_wrapper_files
   irix_wrappers/fcntl.h
   irix_wrappers/fenv.h
   irix_wrappers/getopt.h
+  irix_wrappers/ifaddrs.h
   irix_wrappers/inttypes.h
   irix_wrappers/locale.h
   irix_wrappers/math.h
