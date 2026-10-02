@@ -26,6 +26,10 @@
 
 #include_next <sys/types.h>
 
+/* __BEGIN_DECLS, __P and the rest: glibc's and the BSDs' <sys/types.h>
+ * bring <sys/cdefs.h> in, and programs use them without including it. */
+#include <sys/cdefs.h>
+
 #if !_XOPEN5 || !__has_include(<internal/wchar_core.h>)
 typedef long suseconds_t;
 #endif
