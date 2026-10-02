@@ -12,6 +12,13 @@
 
 #include_next <syslog.h>
 
+/* The BSDs' and Linux's private authorization facility, which IRIX's
+ * syslogd does not know: send those messages to LOG_AUTH, as Solaris does
+ * (polkit). */
+#ifndef LOG_AUTHPRIV
+#define LOG_AUTHPRIV LOG_AUTH
+#endif
+
 /* POSIX's, in IRIX's libc, which its header declares only in SGI mode (and
  * some X/Open modes): declared here outside SGI mode, with IRIX's own
  * prototypes (found by compiling every POSIX header in six feature-macro
