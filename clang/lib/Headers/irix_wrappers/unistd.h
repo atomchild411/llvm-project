@@ -294,6 +294,13 @@ pid_t vfork(void);
 }
 #endif
 
+/* getgrouplist, which the BSDs declare here (glibc in <grp.h>, where it is
+ * too); compiler-rt's IRIX builtins define it. */
+#ifdef __cplusplus
+extern "C"
+#endif
+int getgrouplist(const char *, gid_t, gid_t *, int *);
+
 /* The environment, which IRIX's libc has and none of its headers declare;
  * glibc's <unistd.h> and the BSDs' do (Boost.Process uses it). */
 #ifdef __cplusplus

@@ -36,6 +36,8 @@ void setgrent(void);
 extern "C" {
 #endif
 int initgroups(const char *, gid_t);
+/* The BSDs' and glibc's, which compiler-rt's IRIX builtins define. */
+int getgrouplist(const char *, gid_t, gid_t *, int *);
 int setgroups(int, const gid_t *);
 #ifdef __cplusplus
 }
