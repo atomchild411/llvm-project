@@ -11,7 +11,7 @@
  * constants when missing (the values only need to be consistent;
  * __builtin_fpclassify takes them) and the classification and comparison
  * macros on clang's builtins. Likewise C99's
- * INFINITY, NAN, HUGE_VALF and HUGE_VALL.
+ * INFINITY, NAN, HUGE_VALF and HUGE_VALL, and float_t and double_t.
  *
  * Its libm has most of C99's functions (roundf, lrint, log2, fma, ...) but
  * its header declares only some: declare the rest, for double and float.
@@ -29,6 +29,13 @@
 #define __CLANG_IRIX_MATH_H
 
 #include_next <math.h>
+
+/* C99's float_t and double_t, which IRIX's header lacks: MIPS evaluates
+ * float and double in their own precision (FLT_EVAL_METHOD 0). */
+#ifdef __c99
+typedef float float_t;
+typedef double double_t;
+#endif
 
 #ifndef FP_NAN
 #define FP_NAN 0
