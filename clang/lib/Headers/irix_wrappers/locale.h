@@ -30,7 +30,7 @@
   (LC_CTYPE_MASK | LC_NUMERIC_MASK | LC_TIME_MASK | LC_COLLATE_MASK |          \
    LC_MONETARY_MASK | LC_MESSAGES_MASK)
 
-typedef struct __irix_locale *locale_t;
+#include <__irix_locale_t.h>
 #define LC_GLOBAL_LOCALE ((locale_t)-1)
 
 #ifdef __cplusplus

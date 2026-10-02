@@ -147,4 +147,32 @@ unsigned long long wcstoull(const wchar_t *, wchar_t **, int);
 #endif
 #endif
 
+/* POSIX 2008's locale-taking forms (IRIX's <wctype.h> is this header), which
+ * compiler-rt's IRIX builtins define: LC_GLOBAL_LOCALE behaves as the plain
+ * functions, and any other locale_t is the C locale. */
+#include <__irix_locale_t.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
+int iswalnum_l(wint_t, locale_t);
+int iswalpha_l(wint_t, locale_t);
+int iswblank_l(wint_t, locale_t);
+int iswcntrl_l(wint_t, locale_t);
+int iswdigit_l(wint_t, locale_t);
+int iswgraph_l(wint_t, locale_t);
+int iswlower_l(wint_t, locale_t);
+int iswprint_l(wint_t, locale_t);
+int iswpunct_l(wint_t, locale_t);
+int iswspace_l(wint_t, locale_t);
+int iswupper_l(wint_t, locale_t);
+int iswxdigit_l(wint_t, locale_t);
+wint_t towlower_l(wint_t, locale_t);
+wint_t towupper_l(wint_t, locale_t);
+int wcscoll_l(const wchar_t *, const wchar_t *, locale_t);
+size_t wcsxfrm_l(wchar_t *__restrict, const wchar_t *__restrict, size_t,
+                 locale_t);
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* __CLANG_IRIX_WCHAR_H */

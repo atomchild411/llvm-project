@@ -26,4 +26,29 @@ extern int isblank(int) __asm__("__isblank");
 #endif
 #endif
 
+/* POSIX 2008's locale-taking forms, which compiler-rt's IRIX builtins
+ * define: LC_GLOBAL_LOCALE behaves as the functions above, and any other
+ * locale_t is the C locale (the only one newlocale makes). */
+#include <__irix_locale_t.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
+int isalnum_l(int, locale_t);
+int isalpha_l(int, locale_t);
+int isblank_l(int, locale_t);
+int iscntrl_l(int, locale_t);
+int isdigit_l(int, locale_t);
+int isgraph_l(int, locale_t);
+int islower_l(int, locale_t);
+int isprint_l(int, locale_t);
+int ispunct_l(int, locale_t);
+int isspace_l(int, locale_t);
+int isupper_l(int, locale_t);
+int isxdigit_l(int, locale_t);
+int tolower_l(int, locale_t);
+int toupper_l(int, locale_t);
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* __CLANG_IRIX_CTYPE_H */

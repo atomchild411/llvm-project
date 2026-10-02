@@ -69,4 +69,16 @@ void *memrchr(const void *, int, size_t);
 }
 #endif
 
+/* POSIX 2008's locale-taking forms, which compiler-rt's IRIX builtins
+ * define: see <ctype.h>. */
+#include <__irix_locale_t.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
+int strcoll_l(const char *, const char *, locale_t);
+size_t strxfrm_l(char *__restrict, const char *__restrict, size_t, locale_t);
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* __CLANG_IRIX_STRING_H */

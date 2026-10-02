@@ -433,6 +433,7 @@ set(irix_wrapper_files
   irix_wrappers/uuid.h
   irix_wrappers/wchar.h
   irix_wrappers/complex.h
+  irix_wrappers/__irix_locale_t.h
 )
 
 # Installed under irix_wrappers/internal/ (the install below flattens a list).

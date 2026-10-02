@@ -270,6 +270,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "IRIX")
     irix/pselect.c
     irix/ifaddrs.c
     irix/process_bsd.c
+    irix/locale_l.c
   )
 endif()
 
