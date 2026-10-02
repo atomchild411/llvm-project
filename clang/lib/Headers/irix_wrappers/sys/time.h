@@ -50,4 +50,28 @@ int settimeofday(struct timeval *, ...);
 #endif
 #endif
 
+/* timeradd and timersub, the BSD and glibc macros IRIX lacks. */
+#ifndef timeradd
+#define timeradd(a, b, result)                                                 \
+  do {                                                                         \
+    (result)->tv_sec = (a)->tv_sec + (b)->tv_sec;                              \
+    (result)->tv_usec = (a)->tv_usec + (b)->tv_usec;                           \
+    if ((result)->tv_usec >= 1000000) {                                        \
+      ++(result)->tv_sec;                                                      \
+      (result)->tv_usec -= 1000000;                                            \
+    }                                                                          \
+  } while (0)
+#endif
+#ifndef timersub
+#define timersub(a, b, result)                                                 \
+  do {                                                                         \
+    (result)->tv_sec = (a)->tv_sec - (b)->tv_sec;                              \
+    (result)->tv_usec = (a)->tv_usec - (b)->tv_usec;                           \
+    if ((result)->tv_usec < 0) {                                               \
+      --(result)->tv_sec;                                                      \
+      (result)->tv_usec += 1000000;                                            \
+    }                                                                          \
+  } while (0)
+#endif
+
 #endif /* __CLANG_IRIX_SYS_TIME_H */

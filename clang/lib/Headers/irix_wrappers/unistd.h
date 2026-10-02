@@ -281,4 +281,17 @@ int sethostname(const char *, int);
 #endif
 #endif
 
+/* daemon, and vfork outside XPG4-UX mode (where IRIX's header defines it):
+ * in clang's IRIX runtime (compiler-rt). */
+#ifdef __cplusplus
+extern "C" {
+#endif
+int daemon(int, int);
+#if _SGIAPI
+pid_t vfork(void);
+#endif
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* __CLANG_IRIX_UNISTD_H */

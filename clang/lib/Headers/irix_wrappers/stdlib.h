@@ -157,4 +157,13 @@ int putenv(char *);
 }
 #endif
 
+/* _Exit (C99): in clang's IRIX runtime (compiler-rt). */
+#ifdef __cplusplus
+extern "C" {
+#endif
+void _Exit(int) __attribute__((__noreturn__));
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* __CLANG_IRIX_STDLIB_H */

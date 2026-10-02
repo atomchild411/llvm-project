@@ -245,6 +245,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "IRIX")
     irix/scanf_c99.c
     irix/strtof.c
     irix/progname.c
+    irix/ssp.c
+    irix/compat_bsd2.c
     irix/strsignal.c
     irix/env.c
     irix/locale.c

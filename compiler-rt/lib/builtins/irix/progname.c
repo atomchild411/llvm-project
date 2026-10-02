@@ -55,4 +55,13 @@ const char *getprogname(void) {
 
 void setprogname(const char *name) { progname = base(name); }
 
+// __progname, the BSD and glibc variable, from IRIX's own __Argv at startup.
+#pragma weak __progname
+const char *__progname = "";
+
+__attribute__((constructor)) static void init_progname(void) {
+  if (&__Argv != NULL && __Argv != NULL && __Argv[0] != NULL)
+    __progname = base(__Argv[0]);
+}
+
 #endif // __sgi

@@ -58,4 +58,15 @@ char *strdup(const char *);
 #include <strings.h>
 #endif
 
+/* strlcpy, strlcat and memrchr: in clang's IRIX runtime (compiler-rt). */
+#ifdef __cplusplus
+extern "C" {
+#endif
+size_t strlcpy(char *__restrict, const char *__restrict, size_t);
+size_t strlcat(char *__restrict, const char *__restrict, size_t);
+void *memrchr(const void *, int, size_t);
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* __CLANG_IRIX_STRING_H */
