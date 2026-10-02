@@ -40,4 +40,21 @@ int dladdr(const void *, Dl_info *);
 }
 #endif
 
+/* RTLD_DEFAULT, glibc's value: a null handle, on which IRIX's dlsym() fails.
+ * dlsym() is routed to compiler-rt's IRIX builtins (irix/dlsym.c), which
+ * look such a name up among the global symbols of the program and all its
+ * libraries with rld's _RLD_NAME_TO_ADDR, and pass any other handle to
+ * IRIX's dlsym(). There is no RTLD_NEXT: rld cannot search only the objects
+ * after the caller's. */
+#ifndef RTLD_DEFAULT
+#define RTLD_DEFAULT ((void *)0)
+#ifdef __cplusplus
+extern "C" {
+#endif
+void *dlsym(void *, const char *) __asm__("__irix_dlsym");
+#ifdef __cplusplus
+}
+#endif
+#endif
+
 #endif /* __CLANG_IRIX_DLFCN_H */
