@@ -280,7 +280,21 @@ void irix::Linker::ConstructJob(Compilation &C, const JobAction &JA,
                   D.getLTOMode() == LTOK_Thin);
   }
 
+  size_t InputsBegin = CmdArgs.size();
   AddLinkerInputs(TC, Inputs, Args, CmdArgs, JA);
+
+  // IRIX's libGL.so has GLX and the dispatch only: the GL functions are in
+  // libGLcore.so, which libGL.so needs. SGI's ld resolved symbols through a
+  // library's own dependencies, lld does not: a link with libGL gets
+  // libGLcore right after it (so a libGL that has the functions itself, such
+  // as a replacement, still provides them).
+  for (size_t I = InputsBegin; I < CmdArgs.size(); ++I) {
+    StringRef A = CmdArgs[I];
+    if (A == "-lGL" || A.ends_with("/libGL.so")) {
+      CmdArgs.insert(CmdArgs.begin() + I + 1, "-lGLcore");
+      break;
+    }
+  }
 
   bool LinkedRuntime = false;
   if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs)) {
