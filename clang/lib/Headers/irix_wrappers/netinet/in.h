@@ -13,10 +13,10 @@
  * instead: in6_addr, sockaddr_in6 (with sin6_scope_id, and IRIX's 16-bit
  * address family first, as in its sockaddr), in6addr_any and
  * in6addr_loopback (defined by compiler-rt's IRIX builtins, irix/netdb.c),
- * the IN6_IS_ADDR_* tests, ipv6_mreq and the IPV6_* option names. They make
- * code compile and let it parse and print IPv6 addresses; they do not give
- * IRIX IPv6 networking. INET_ADDRSTRLEN, which IRIX also keeps under INET6,
- * is defined either way.
+ * the IN6_IS_ADDR_* tests and IN6_ARE_ADDR_EQUAL, ipv6_mreq and the IPV6_*
+ * option names. They make code compile and let it parse and print IPv6
+ * addresses; they do not give IRIX IPv6 networking. INET_ADDRSTRLEN, which
+ * IRIX also keeps under INET6, is defined either way.
  */
 
 #ifndef __CLANG_IRIX_NETINET_IN_H
@@ -101,6 +101,11 @@ extern const struct in6_addr in6addr_loopback;
   (IN6_IS_ADDR_MULTICAST(a) && __IRIX_IN6_MC_SCOPE(a) == 0x8)
 #define IN6_IS_ADDR_MC_GLOBAL(a)                                               \
   (IN6_IS_ADDR_MULTICAST(a) && __IRIX_IN6_MC_SCOPE(a) == 0xe)
+#define IN6_ARE_ADDR_EQUAL(a, b)                                               \
+  ((a)->__u6_addr.__u6_addr32[0] == (b)->__u6_addr.__u6_addr32[0] &&           \
+   (a)->__u6_addr.__u6_addr32[1] == (b)->__u6_addr.__u6_addr32[1] &&           \
+   (a)->__u6_addr.__u6_addr32[2] == (b)->__u6_addr.__u6_addr32[2] &&           \
+   (a)->__u6_addr.__u6_addr32[3] == (b)->__u6_addr.__u6_addr32[3])
 
 struct ipv6_mreq {
   struct in6_addr ipv6mr_multiaddr;
