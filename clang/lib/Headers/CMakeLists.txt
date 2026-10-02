@@ -422,7 +422,6 @@ set(irix_wrapper_files
   irix_wrappers/math.h
   irix_wrappers/netdb.h
   irix_wrappers/pthread.h
-  irix_wrappers/resolv.h
   irix_wrappers/spawn.h
   irix_wrappers/stdint.h
   irix_wrappers/stdio.h
@@ -441,6 +440,7 @@ set(irix_wrapper_internal_files
 
 # Installed under irix_wrappers/sys/.
 set(irix_wrapper_sys_files
+  irix_wrappers/sys/bitypes.h
   irix_wrappers/sys/endian.h
   irix_wrappers/sys/file.h
   irix_wrappers/sys/ipc.h
