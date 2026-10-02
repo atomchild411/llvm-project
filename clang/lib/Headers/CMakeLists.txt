@@ -409,6 +409,7 @@ set(irix_wrapper_files
   irix_wrappers/assert.h
   irix_wrappers/termios.h
   irix_wrappers/byteswap.h
+  irix_wrappers/elf.h
   irix_wrappers/endian.h
   irix_wrappers/ctype.h
   irix_wrappers/dirent.h
