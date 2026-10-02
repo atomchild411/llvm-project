@@ -28,11 +28,56 @@
 #ifndef __CLANG_IRIX_INTTYPES_H
 #define __CLANG_IRIX_INTTYPES_H
 
+/* IRIX's header also declares functions of its own (strtoi8 ... strtou64,
+ * abs_32, div_64 and so on) whose names programs use for macros
+ * (PostgreSQL's strtoi64): set any such macros aside while it is read. */
+#pragma push_macro("strtoi8")
+#undef strtoi8
+#pragma push_macro("strtoi16")
+#undef strtoi16
+#pragma push_macro("strtoi32")
+#undef strtoi32
+#pragma push_macro("strtoi64")
+#undef strtoi64
+#pragma push_macro("strtou8")
+#undef strtou8
+#pragma push_macro("strtou16")
+#undef strtou16
+#pragma push_macro("strtou32")
+#undef strtou32
+#pragma push_macro("strtou64")
+#undef strtou64
+#pragma push_macro("abs_32")
+#undef abs_32
+#pragma push_macro("abs_64")
+#undef abs_64
+#pragma push_macro("div_32")
+#undef div_32
+#pragma push_macro("div_64")
+#undef div_64
+#pragma push_macro("abs_max")
+#undef abs_max
+#pragma push_macro("div_max")
+#undef div_max
 #define strtoimax __irix_unused_strtoimax
 #define strtoumax __irix_unused_strtoumax
 #include_next <inttypes.h>
 #undef strtoimax
 #undef strtoumax
+#pragma pop_macro("strtoi8")
+#pragma pop_macro("strtoi16")
+#pragma pop_macro("strtoi32")
+#pragma pop_macro("strtoi64")
+#pragma pop_macro("strtou8")
+#pragma pop_macro("strtou16")
+#pragma pop_macro("strtou32")
+#pragma pop_macro("strtou64")
+#pragma pop_macro("abs_32")
+#pragma pop_macro("abs_64")
+#pragma pop_macro("div_32")
+#pragma pop_macro("div_64")
+#pragma pop_macro("abs_max")
+#pragma pop_macro("div_max")
 
 #include <stdint.h>
 
