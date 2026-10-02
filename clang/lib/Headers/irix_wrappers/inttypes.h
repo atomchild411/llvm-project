@@ -14,8 +14,9 @@
  *
  * C99 also has <inttypes.h> include <stdint.h>; IRIX's does not, so code
  * that includes only <inttypes.h> (nghttp2) went without SIZE_MAX and the
- * other limits. Include it in the modes where IRIX has C99 (__c99: C99 and
- * later, and C++); a C89 compilation keeps IRIX's header as it is.
+ * other limits. Include it in every mode, as glibc and the BSDs do: gnu89
+ * code (netpbm) uses SIZE_MAX too, and outside C99 our <stdint.h> defines
+ * what it has itself rather than reading IRIX's C99-only header.
  *
  * strtoimax, strtoumax and imaxabs: IRIX declares the first two only in its
  * own API mode, and no IRIX library defines any of them; compiler-rt's
@@ -33,8 +34,9 @@
 #undef strtoimax
 #undef strtoumax
 
-#ifdef __c99
 #include <stdint.h>
+
+#ifdef __c99
 #ifdef __cplusplus
 extern "C" {
 #endif
