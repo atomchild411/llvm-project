@@ -28,6 +28,13 @@
 #ifndef __CLANG_IRIX_MATH_H
 #define __CLANG_IRIX_MATH_H
 
+/* IRIX's HUGE_VAL reads a union in libc (__huge_val.d), which is no
+ * constant expression: static initializers with it (graphviz) did not
+ * compile. Define it first (as <limits.h> does) as the constant, which IRIX's headers keep. */
+#ifndef HUGE_VAL
+#define HUGE_VAL __builtin_huge_val()
+#endif
+
 #include_next <math.h>
 
 /* C99's float_t and double_t, which IRIX's header lacks: MIPS evaluates

@@ -44,7 +44,22 @@
 #define __IRIX_GETOPT_INDIRECT
 #define __IRIX_GETOPT_INDIRECT_STDIO
 #endif
+/* A program with its own snprintf or vsnprintf (gnulib's rpl_vsnprintf,
+ * devel/check's) renames it with a macro before this: keep the macro off
+ * IRIX's declarations, and do not put ours over it below. */
+#ifdef snprintf
+#define __CLANG_IRIX_OWN_SNPRINTF
+#endif
+#ifdef vsnprintf
+#define __CLANG_IRIX_OWN_VSNPRINTF
+#endif
+#pragma push_macro("snprintf")
+#pragma push_macro("vsnprintf")
+#undef snprintf
+#undef vsnprintf
 #include_next <stdio.h>
+#pragma pop_macro("snprintf")
+#pragma pop_macro("vsnprintf")
 #ifdef __IRIX_GETOPT_INDIRECT_STDIO
 #undef __IRIX_GETOPT_INDIRECT
 #undef __IRIX_GETOPT_INDIRECT_STDIO
@@ -156,8 +171,14 @@ int renameat(int, const char *, int, const char *); /* irix/atfile.c */
 #endif
 
 /* Object-like, so that std::snprintf and using ::snprintf follow too. */
+#ifndef __CLANG_IRIX_OWN_SNPRINTF
 #define snprintf __irix_snprintf
+#endif
+#ifndef __CLANG_IRIX_OWN_VSNPRINTF
 #define vsnprintf __irix_vsnprintf
+#endif
+#undef __CLANG_IRIX_OWN_SNPRINTF
+#undef __CLANG_IRIX_OWN_VSNPRINTF
 
 /* POSIX's, in IRIX's libc, which its header declares only in SGI mode (and
  * some X/Open modes): declared here outside SGI mode, with IRIX's own

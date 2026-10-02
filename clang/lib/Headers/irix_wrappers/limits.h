@@ -10,6 +10,13 @@
 #ifndef __CLANG_IRIX_LIMITS_H
 #define __CLANG_IRIX_LIMITS_H
 
+/* IRIX's HUGE_VAL reads a union in libc (__huge_val.d), which is no
+ * constant expression: static initializers with it (graphviz) did not
+ * compile. Define it first as the constant, which IRIX's headers keep. */
+#ifndef HUGE_VAL
+#define HUGE_VAL __builtin_huge_val()
+#endif
+
 #include_next <limits.h>
 
 /* The minimum values POSIX.1-2001 added, which IRIX's <limits.h> predates
