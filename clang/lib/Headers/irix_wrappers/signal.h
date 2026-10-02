@@ -60,4 +60,10 @@ void (*bsd_signal(int, void (*)(int)))(int);
 #endif
 #endif
 
+/* sig_t: the BSD name for a signal handler's type, which glibc gives too. */
+#if !defined(__STRICT_ANSI__) && !defined(__CLANG_IRIX_SIG_T)
+#define __CLANG_IRIX_SIG_T
+typedef void (*sig_t)(int);
+#endif
+
 #endif /* __CLANG_IRIX_SIGNAL_H */

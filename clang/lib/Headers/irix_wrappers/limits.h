@@ -45,4 +45,10 @@
 #endif
 #endif
 
+/* IOV_MAX: IRIX answers it only through sysconf(_SC_IOV_MAX). Code that
+ * wants a constant gets the guaranteed minimum, _XOPEN_IOV_MAX. */
+#if !defined(IOV_MAX) && defined(_XOPEN_IOV_MAX)
+#define IOV_MAX _XOPEN_IOV_MAX
+#endif
+
 #endif /* __CLANG_IRIX_LIMITS_H */

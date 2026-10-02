@@ -40,4 +40,11 @@ typedef long blksize_t;
 #include <sys/select.h>
 #endif
 
+/* u_int64_t: IRIX gives the BSD names u_int8_t to u_int32_t but not the
+ * 64-bit one, which code written since uses beside them. */
+#ifndef __CLANG_IRIX_U_INT64_T
+#define __CLANG_IRIX_U_INT64_T
+typedef __uint64_t u_int64_t;
+#endif
+
 #endif /* __CLANG_IRIX_SYS_TYPES_H */

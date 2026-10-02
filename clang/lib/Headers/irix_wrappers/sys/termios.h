@@ -31,4 +31,10 @@ struct winsize {
 #define TIOCSWINSZ _IOW('t', 103, struct winsize)
 #endif
 
+/* CRTSCTS: IRIX spells hardware flow control CNEW_RTSCTS (its RiscOS
+ * compatibility name). */
+#if !defined(CRTSCTS) && defined(CNEW_RTSCTS)
+#define CRTSCTS CNEW_RTSCTS
+#endif
+
 #endif /* __CLANG_IRIX_SYS_TERMIOS_H */

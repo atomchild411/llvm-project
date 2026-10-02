@@ -51,4 +51,11 @@ char *strdup(const char *);
 #endif
 #endif
 
+/* bzero, bcopy and the rest of <strings.h>: glibc's <string.h> includes it
+ * unless asked for strict ISO C, and code relies on that; IRIX's does not. */
+#if !defined(__STRICT_ANSI__) || defined(_GNU_SOURCE) || \
+    defined(_DEFAULT_SOURCE) || defined(_BSD_SOURCE)
+#include <strings.h>
+#endif
+
 #endif /* __CLANG_IRIX_STRING_H */
