@@ -294,4 +294,12 @@ pid_t vfork(void);
 }
 #endif
 
+/* The environment, which IRIX's libc has and none of its headers declare;
+ * glibc's <unistd.h> and the BSDs' do (Boost.Process uses it). */
+#ifdef __cplusplus
+extern "C" char **environ;
+#else
+extern char **environ;
+#endif
+
 #endif /* __CLANG_IRIX_UNISTD_H */
