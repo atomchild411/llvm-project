@@ -177,6 +177,26 @@ void IRIX::AddCXXStdlibLibArgs(const ArgList &Args,
   }
 }
 
+// The compiler-rt builtins as -L<dir> -lclang_rt.builtins rather than the
+// archive's path. libtool links C++ shared libraries with -nostdlib and adds
+// back the runtime libraries it read from the driver's -v output, but it
+// keeps only -L, -l and object files: given the path, it dropped the
+// builtins, and the library was left with undefined references
+// (__irix_c99_sprintf, __powidf2) that executables could not satisfy,
+// compiler-rt's symbols being hidden. libgcc is linked the same way.
+static void addBuiltinsAsLibrary(const ToolChain &TC, const ArgList &Args,
+                                 ArgStringList &CmdArgs) {
+  std::string Path = TC.getCompilerRT(Args, "builtins", ToolChain::FT_Static);
+  StringRef Name = llvm::sys::path::stem(Path); // libclang_rt.builtins
+  if (!Name.consume_front("lib")) {
+    CmdArgs.push_back(Args.MakeArgString(Path));
+    return;
+  }
+  CmdArgs.push_back(
+      Args.MakeArgString("-L" + llvm::sys::path::parent_path(Path)));
+  CmdArgs.push_back(Args.MakeArgString("-l" + Name));
+}
+
 void irix::Linker::ConstructJob(Compilation &C, const JobAction &JA,
                                 const InputInfo &Output,
                                 const InputInfoList &Inputs,
@@ -277,8 +297,21 @@ void irix::Linker::ConstructJob(Compilation &C, const JobAction &JA,
       CmdArgs.push_back("-lm");
       CmdArgs.push_back("-lpthread");
       CmdArgs.push_back("--pop-state");
-      // Builtins and the unwinder.
+      // Builtins and the unwinder; the builtins by name (see
+      // addBuiltinsAsLibrary).
+      std::string BuiltinsPath =
+          TC.getCompilerRT(Args, "builtins", ToolChain::FT_Static);
+      size_t First = CmdArgs.size();
       AddRunTimeLibs(TC, D, CmdArgs, Args);
+      for (size_t I = First; I < CmdArgs.size(); ++I) {
+        if (BuiltinsPath != CmdArgs[I])
+          continue;
+        ArgStringList Lib;
+        addBuiltinsAsLibrary(TC, Args, Lib);
+        CmdArgs.erase(CmdArgs.begin() + I);
+        CmdArgs.insert(CmdArgs.begin() + I, Lib.begin(), Lib.end());
+        break;
+      }
       LinkedRuntime = true;
     }
 
@@ -291,8 +324,7 @@ void irix::Linker::ConstructJob(Compilation &C, const JobAction &JA,
 
   // C links take only the builtins: AddRunTimeLibs would add the unwinder.
   if (!LinkedRuntime && !Args.hasArg(options::OPT_nostdlib))
-    CmdArgs.push_back(
-        TC.getCompilerRTArgString(Args, "builtins", ToolChain::FT_Static));
+    addBuiltinsAsLibrary(TC, Args, CmdArgs);
 
   if (StartFiles) {
     CmdArgs.push_back(
