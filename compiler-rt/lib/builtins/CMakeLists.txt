@@ -276,6 +276,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "IRIX")
     irix/fcntl.c
     irix/grouplist.c
     irix/dlsym.c
+    irix/fts.c
   )
   # They stand in for libc's functions, so they keep default visibility: a
   # shared library linked without the builtins (libtool links C++ libraries
