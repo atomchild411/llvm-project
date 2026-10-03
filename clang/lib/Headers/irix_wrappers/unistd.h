@@ -14,6 +14,13 @@
  * their own, above IRIX's, and sysconf is bound to compiler-rt's
  * irix/sysconf.c, which answers them and passes every other name to IRIX's
  * sysconf.
+ *
+ * Outside the strict modes IRIX's header also declares SGI's own fork
+ * hooks, atfork_child, atfork_child_prepend, atfork_parent and atfork_pre:
+ * common names for a program's own static functions (GStreamer's leak
+ * tracer has two), which then clash with them. They are declared here under
+ * other names, so the program's own are free; portable code registers fork
+ * hooks with pthread_atfork.
  */
 
 #ifndef __CLANG_IRIX_UNISTD_H
@@ -26,8 +33,16 @@
 #define __IRIX_GETOPT_INDIRECT_UNISTD
 #endif
 #define sysconf __irix_libc_sysconf
+#define atfork_child __irix_atfork_child
+#define atfork_child_prepend __irix_atfork_child_prepend
+#define atfork_parent __irix_atfork_parent
+#define atfork_pre __irix_atfork_pre
 #include_next <unistd.h>
 #undef sysconf
+#undef atfork_child
+#undef atfork_child_prepend
+#undef atfork_parent
+#undef atfork_pre
 #ifdef __IRIX_GETOPT_INDIRECT_UNISTD
 #undef __IRIX_GETOPT_INDIRECT
 #undef __IRIX_GETOPT_INDIRECT_UNISTD
