@@ -84,4 +84,10 @@ int openat(int, const char *, int, ...);
 }
 #endif
 
+/* The BSDs' and glibc's name for asynchronous I/O notification on a
+ * descriptor (F_SETFL), which IRIX calls FASYNC, in <sys/fcntl.h>. */
+#ifndef O_ASYNC
+#define O_ASYNC 0x1000
+#endif
+
 #endif /* __CLANG_IRIX_FCNTL_H */

@@ -58,4 +58,10 @@
 #define IOV_MAX _XOPEN_IOV_MAX
 #endif
 
+/* POSIX's: a login name's length with its null, which IRIX gives without
+ * it as LOGNAME_MAX (8). */
+#ifndef LOGIN_NAME_MAX
+#define LOGIN_NAME_MAX 9
+#endif
+
 #endif /* __CLANG_IRIX_LIMITS_H */
