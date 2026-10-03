@@ -51,6 +51,10 @@ struct in6_addr {
   } __u6_addr;
 };
 #define s6_addr __u6_addr.__u6_addr8
+/* glibc's other views of the address, which programs written for Linux
+ * use (CUPS: s6_addr32). */
+#define s6_addr16 __u6_addr.__u6_addr16
+#define s6_addr32 __u6_addr.__u6_addr32
 
 struct sockaddr_in6 {
   sa_family_t sin6_family;
