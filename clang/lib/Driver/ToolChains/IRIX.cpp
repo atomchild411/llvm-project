@@ -215,6 +215,11 @@ void irix::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   Args.ClaimAllArgs(options::OPT_g_Group);
   Args.ClaimAllArgs(options::OPT_emit_llvm);
   Args.ClaimAllArgs(options::OPT_w);
+  // --unwindlib: only C++ links that take the C++ library read it (through
+  // AddRunTimeLibs); C links and -nostdlib++ ones do not need an unwinder.
+  // It is still no unused argument there: LLVM's runtimes pass it to every
+  // compiler check, with -Werror (libunwind's -funwind-tables check failed).
+  Args.ClaimAllArgs(options::OPT_unwindlib_EQ);
 
   if (!D.SysRoot.empty())
     CmdArgs.push_back(Args.MakeArgString("--sysroot=" + D.SysRoot));
