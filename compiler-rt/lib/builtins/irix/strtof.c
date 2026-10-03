@@ -15,6 +15,7 @@
 #if defined(__sgi)
 
 #include <errno.h>
+#include "irix_errno.h"
 
 extern double __irix_libc_strtod(const char *, char **) __asm__("strtod");
 
@@ -23,9 +24,9 @@ float __irix_strtof(const char *nptr, char **endptr) {
   float f = (float)d;
   // Out of float's range, though not double's.
   if (__builtin_isinf(f) && !__builtin_isinf(d))
-    errno = ERANGE;
+    __irix_seterrno(ERANGE);
   else if (f == 0 && d != 0)
-    errno = ERANGE;
+    __irix_seterrno(ERANGE);
   return f;
 }
 

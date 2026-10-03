@@ -28,6 +28,7 @@
 #if defined(__sgi)
 
 #include <errno.h>
+#include "irix_errno.h"
 #include <fcntl.h>
 #include <sched.h>
 #include <signal.h>
@@ -384,7 +385,7 @@ static void exec_path(const char *file, char *const argv[],
     if (!*end)
       break;
   }
-  errno = saw_eacces ? EACCES : ENOENT;
+  __irix_seterrno(saw_eacces ? EACCES : ENOENT);
 }
 
 static int spawn(pid_t *pidp, const char *file,

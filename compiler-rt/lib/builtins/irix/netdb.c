@@ -26,6 +26,7 @@
 
 #include <arpa/inet.h>
 #include <errno.h>
+#include "irix_errno.h"
 #include <net/if.h>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -354,14 +355,14 @@ int getnameinfo(const struct sockaddr *sa, socklen_t salen, char *host,
 // IPv6 scope ids name interfaces; IRIX has no IPv6 to scope.
 unsigned int if_nametoindex(const char *name) {
   (void)name;
-  errno = ENXIO;
+  __irix_seterrno(ENXIO);
   return 0;
 }
 
 char *if_indextoname(unsigned int index, char *name) {
   (void)index;
   (void)name;
-  errno = ENXIO;
+  __irix_seterrno(ENXIO);
   return 0;
 }
 

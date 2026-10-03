@@ -19,6 +19,7 @@
 #if defined(__sgi)
 
 #include <errno.h>
+#include "irix_errno.h"
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
@@ -63,22 +64,22 @@ long long strtonum(const char *s, long long lo, long long hi,
   int saved = errno;
   if (lo > hi) {
     why = "invalid";
-    errno = EINVAL;
+    __irix_seterrno(EINVAL);
   } else {
     char *end;
-    errno = 0;
+    __irix_seterrno(0);
     v = strtoll(s, &end, 10);
     if (end == s || *end != '\0') {
       why = "invalid";
-      errno = EINVAL;
+      __irix_seterrno(EINVAL);
     } else if ((v == llmin && errno == ERANGE) || v < lo) {
       why = "too small";
-      errno = ERANGE;
+      __irix_seterrno(ERANGE);
     } else if ((v == llmax && errno == ERANGE) || v > hi) {
       why = "too large";
-      errno = ERANGE;
+      __irix_seterrno(ERANGE);
     } else {
-      errno = saved;
+      __irix_seterrno(saved);
     }
     if (why)
       v = 0;

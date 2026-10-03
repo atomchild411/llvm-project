@@ -26,6 +26,7 @@
 #if defined(__sgi)
 
 #include <errno.h>
+#include "irix_errno.h"
 #include <sys/times.h>
 #include <time.h>
 #include <unistd.h>
@@ -57,7 +58,7 @@ int __irix_clock_gettime(clockid_t id, struct timespec *ts) {
     unsigned long ticks = (unsigned long)times(&t);
     long hz = ticks_per_second();
     if (!ts) {
-      errno = EFAULT;
+      __irix_seterrno(EFAULT);
       return -1;
     }
     if (id == __IRIX_CLOCK_PROCESS_CPUTIME_ID)

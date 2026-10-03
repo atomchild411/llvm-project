@@ -19,6 +19,7 @@
 #if defined(__sgi)
 
 #include <errno.h>
+#include "irix_errno.h"
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -59,7 +60,7 @@ char *mkdtemp(char *tmpl) {
   int tries;
 
   if (len < 6 || strcmp(tmpl + len - 6, "XXXXXX") != 0) {
-    errno = EINVAL;
+    __irix_seterrno(EINVAL);
     return 0;
   }
   x = tmpl + len - 6;
@@ -74,7 +75,7 @@ char *mkdtemp(char *tmpl) {
     if (errno != EEXIST)
       return 0;
   }
-  errno = EEXIST;
+  __irix_seterrno(EEXIST);
   return 0;
 }
 

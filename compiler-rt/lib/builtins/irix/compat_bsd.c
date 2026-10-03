@@ -15,6 +15,7 @@
 #if defined(__sgi)
 
 #include <errno.h>
+#include "irix_errno.h"
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <termios.h>
@@ -44,7 +45,7 @@ int lchmod(const char *path, mode_t mode) {
   if (lstat(path, &st) == -1)
     return -1;
   if (S_ISLNK(st.st_mode)) {
-    errno = ENOTSUP;
+    __irix_seterrno(ENOTSUP);
     return -1;
   }
   return chmod(path, mode);

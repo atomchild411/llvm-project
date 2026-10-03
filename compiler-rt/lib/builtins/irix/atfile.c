@@ -30,6 +30,7 @@
 
 #include <dirent.h>
 #include <errno.h>
+#include "irix_errno.h"
 #include <fcntl.h>
 #include <limits.h>
 #include <stdarg.h>
@@ -57,13 +58,13 @@ static const char *at_path(int fd, const char *path, char *buf) {
   int cwd, e;
   size_t n;
   if (path == 0) {
-    errno = EFAULT;
+    __irix_seterrno(EFAULT);
     return 0;
   }
   if (fd == AT_FDCWD || path[0] == '/')
     return path;
   if (path[0] == '\0') {
-    errno = ENOENT;
+    __irix_seterrno(ENOENT);
     return 0;
   }
   cwd = __irix_libc_open(".", O_RDONLY);
@@ -72,23 +73,23 @@ static const char *at_path(int fd, const char *path, char *buf) {
   if (fchdir(fd) < 0) {
     e = errno;
     close(cwd);
-    errno = e;
+    __irix_seterrno(e);
     return 0;
   }
   if (getcwd(buf, PATH_MAX) == 0) {
     e = errno;
     fchdir(cwd);
     close(cwd);
-    errno = e;
+    __irix_seterrno(e);
     return 0;
   }
   e = errno;
   fchdir(cwd);
   close(cwd);
-  errno = e;
+  __irix_seterrno(e);
   n = strlen(buf);
   if (n + 1 + strlen(path) + 1 > PATH_MAX) {
-    errno = ENAMETOOLONG;
+    __irix_seterrno(ENAMETOOLONG);
     return 0;
   }
   if (n == 0 || buf[n - 1] != '/')
@@ -127,7 +128,7 @@ int fchmodat(int fd, const char *path, mode_t mode, int flag) {
     if (lstat(at_p_, &st) < 0)
       return -1;
     if (S_ISLNK(st.st_mode)) {
-      errno = EOPNOTSUPP;
+      __irix_seterrno(EOPNOTSUPP);
       return -1;
     }
   }
@@ -229,7 +230,7 @@ int faccessat(int fd, const char *path, int mode, int flag) {
     if ((((st.st_mode >> shift) & 7) & mode) == mode)
       return 0;
   }
-  errno = EACCES;
+  __irix_seterrno(EACCES);
   return -1;
 }
 
@@ -245,7 +246,7 @@ int utimensat(int fd, const char *path, const struct timespec ts[2],
     if (lstat(at_p_, &st) < 0)
       return -1;
     if (S_ISLNK(st.st_mode)) {
-      errno = EOPNOTSUPP;
+      __irix_seterrno(EOPNOTSUPP);
       return -1;
     }
   }
@@ -263,7 +264,7 @@ int utimensat(int fd, const char *path, const struct timespec ts[2],
       tv[i].tv_sec = i == 0 ? st.st_atime : st.st_mtime;
       tv[i].tv_usec = 0;
     } else if (ts[i].tv_nsec < 0 || ts[i].tv_nsec >= 1000000000L) {
-      errno = EINVAL;
+      __irix_seterrno(EINVAL);
       return -1;
     } else {
       tv[i].tv_sec = ts[i].tv_sec;
@@ -286,7 +287,7 @@ DIR *fdopendir(int fd) {
     return 0;
   fdflags = fcntl(fd, F_GETFD);
   if (!S_ISDIR(st.st_mode)) {
-    errno = ENOTDIR;
+    __irix_seterrno(ENOTDIR);
     return 0;
   }
   p = at_path(fd, ".", buf);
@@ -300,7 +301,7 @@ DIR *fdopendir(int fd) {
     if (dup2(dfd, fd) < 0) {
       e = errno;
       closedir(d);
-      errno = e;
+      __irix_seterrno(e);
       return 0;
     }
     close(dfd);

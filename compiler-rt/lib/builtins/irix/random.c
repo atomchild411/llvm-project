@@ -22,6 +22,7 @@
 #if defined(__sgi)
 
 #include <errno.h>
+#include "irix_errno.h"
 #include <fcntl.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -48,7 +49,7 @@ static int urandom(void *buf, size_t n) {
     if (got <= 0) {
       saved = got < 0 ? errno : EIO;
       close(fd);
-      errno = saved;
+      __irix_seterrno(saved);
       return -1;
     }
     p += got;
@@ -60,7 +61,7 @@ static int urandom(void *buf, size_t n) {
 
 int getentropy(void *buf, size_t n) {
   if (n > 256) {
-    errno = EIO;
+    __irix_seterrno(EIO);
     return -1;
   }
   return urandom(buf, n);

@@ -25,6 +25,7 @@
 #if defined(__sgi)
 
 #include <errno.h>
+#include "irix_errno.h"
 #include <fcntl.h>
 #include <stdarg.h>
 #include <sys/stat.h>
@@ -53,7 +54,7 @@ int __irix_open(const char *path, int flags, ...) {
   if (flags & __IRIX_O_NOFOLLOW) {
     struct stat st;
     if (lstat(path, &st) == 0 && S_ISLNK(st.st_mode)) {
-      errno = ELOOP;
+      __irix_seterrno(ELOOP);
       return -1;
     }
     flags &= ~__IRIX_O_NOFOLLOW;
@@ -68,7 +69,7 @@ int __irix_open(const char *path, int flags, ...) {
       struct stat st;
       if (fstat(fd, &st) != 0 || !S_ISDIR(st.st_mode)) {
         close(fd);
-        errno = ENOTDIR;
+        __irix_seterrno(ENOTDIR);
         return -1;
       }
     }

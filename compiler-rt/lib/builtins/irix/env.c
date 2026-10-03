@@ -21,6 +21,7 @@
 #if defined(__sgi)
 
 #include <errno.h>
+#include "irix_errno.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -41,7 +42,7 @@ int setenv(const char *name, const char *value, int overwrite) {
   char *s;
 
   if (!valid_name(name)) {
-    errno = EINVAL;
+    __irix_seterrno(EINVAL);
     return -1;
   }
   if (!overwrite && getenv(name))
@@ -50,7 +51,7 @@ int setenv(const char *name, const char *value, int overwrite) {
   v = strlen(value);
   s = (char *)malloc(n + v + 2);
   if (!s) {
-    errno = ENOMEM;
+    __irix_seterrno(ENOMEM);
     return -1;
   }
   memcpy(s, name, n);
@@ -64,7 +65,7 @@ int unsetenv(const char *name) {
   char **p, **q;
 
   if (!valid_name(name)) {
-    errno = EINVAL;
+    __irix_seterrno(EINVAL);
     return -1;
   }
   n = strlen(name);

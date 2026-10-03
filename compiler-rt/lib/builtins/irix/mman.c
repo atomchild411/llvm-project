@@ -21,6 +21,7 @@
 #if defined(__sgi)
 
 #include <errno.h>
+#include "irix_errno.h"
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/types.h>
@@ -57,7 +58,7 @@ void *__irix_mmap(void *addr, size_t len, int prot, int flags, int fd,
   p = __irix_libc_mmap(addr, len, prot, anon_flags(flags), zfd, 0);
   e = errno;
   close(zfd);
-  errno = e;
+  __irix_seterrno(e);
   return p;
 }
 

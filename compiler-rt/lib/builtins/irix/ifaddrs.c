@@ -20,6 +20,7 @@
 #if defined(__sgi)
 
 #include <errno.h>
+#include "irix_errno.h"
 #include <ifaddrs.h>
 #include <net/if.h>
 #include <net/soioctl.h>
@@ -111,7 +112,7 @@ fail:
   freeifaddrs(head);
   free(buf);
   close(s);
-  errno = err;
+  __irix_seterrno(err);
   return -1;
 }
 

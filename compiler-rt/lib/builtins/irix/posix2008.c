@@ -30,6 +30,7 @@
 #include <ctype.h>
 #include <dirent.h>
 #include <errno.h>
+#include "irix_errno.h"
 #include <fcntl.h>
 #include <stdarg.h>
 #include <stdint.h>
@@ -154,13 +155,13 @@ ssize_t getdelim(char **__restrict lineptr, size_t *__restrict n, int delim,
   int c;
 
   if (!lineptr || !n || !f) {
-    errno = EINVAL;
+    __irix_seterrno(EINVAL);
     return -1;
   }
   if (!*lineptr || !*n) {
     char *p = (char *)realloc(*lineptr, 128);
     if (!p) {
-      errno = ENOMEM;
+      __irix_seterrno(ENOMEM);
       return -1;
     }
     *lineptr = p;
@@ -174,12 +175,12 @@ ssize_t getdelim(char **__restrict lineptr, size_t *__restrict n, int delim,
       size_t size = *n * 2;
       char *p;
       if (size > ((size_t)-1 >> 1)) { // beyond ssize_t
-        errno = EOVERFLOW;
+        __irix_seterrno(EOVERFLOW);
         return -1;
       }
       p = (char *)realloc(*lineptr, size);
       if (!p) {
-        errno = ENOMEM;
+        __irix_seterrno(ENOMEM);
         return -1;
       }
       *lineptr = p;
@@ -267,7 +268,7 @@ int posix_memalign(void **p, size_t align, size_t size) {
 
 void *aligned_alloc(size_t align, size_t size) {
   if (!align || (align & (align - 1))) {
-    errno = EINVAL;
+    __irix_seterrno(EINVAL);
     return 0;
   }
   if (align < sizeof(void *))
@@ -291,7 +292,7 @@ int mkostemp(char *tmpl, int flags) {
     int e = errno;
     close(fd);
     unlink(tmpl);
-    errno = e;
+    __irix_seterrno(e);
     return -1;
   }
   return fd;
@@ -299,7 +300,7 @@ int mkostemp(char *tmpl, int flags) {
 
 void *reallocarray(void *p, size_t n, size_t size) {
   if (size && n > SIZE_MAX / size) {
-    errno = ENOMEM;
+    __irix_seterrno(ENOMEM);
     return 0;
   }
   return realloc(p, n * size);
@@ -333,7 +334,7 @@ time_t timegm(struct tm *tm) {
   secs = secs * 86400 + tm->tm_hour * 3600LL + tm->tm_min * 60LL + tm->tm_sec;
   t = (time_t)secs;
   if ((long long)t != secs) {
-    errno = EOVERFLOW;
+    __irix_seterrno(EOVERFLOW);
     return (time_t)-1;
   }
   gmtime_r(&t, tm);

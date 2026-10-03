@@ -27,6 +27,7 @@
 #if defined(__sgi)
 
 #include <errno.h>
+#include "irix_errno.h"
 #include <locale.h>
 #include <stdlib.h>
 #include <string.h>
@@ -65,11 +66,11 @@ static int environment_is_c(void) {
 locale_t newlocale(int mask, const char *name, locale_t base) {
   (void)base;
   if ((mask & ~LC_ALL_MASK) || !name) {
-    errno = EINVAL;
+    __irix_seterrno(EINVAL);
     return 0;
   }
   if (!is_c(name) && !(name[0] == 0 && environment_is_c())) {
-    errno = ENOENT;
+    __irix_seterrno(ENOENT);
     return 0;
   }
   return &c_locale;
@@ -77,7 +78,7 @@ locale_t newlocale(int mask, const char *name, locale_t base) {
 
 locale_t duplocale(locale_t loc) {
   if (!loc) {
-    errno = EINVAL;
+    __irix_seterrno(EINVAL);
     return 0;
   }
   return &c_locale;

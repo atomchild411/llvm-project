@@ -22,6 +22,7 @@
 #if defined(__sgi)
 
 #include <errno.h>
+#include "irix_errno.h"
 #include <signal.h>
 #include <sys/select.h>
 #include <sys/time.h>
@@ -36,7 +37,7 @@ int pselect(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
   if (timeout) {
     if (timeout->tv_sec < 0 || timeout->tv_nsec < 0 ||
         timeout->tv_nsec >= 1000000000L) {
-      errno = EINVAL;
+      __irix_seterrno(EINVAL);
       return -1;
     }
     tv.tv_sec = timeout->tv_sec;
@@ -53,7 +54,7 @@ int pselect(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
   saved_errno = errno;
   if (sigmask)
     sigprocmask(SIG_SETMASK, &saved, 0);
-  errno = saved_errno;
+  __irix_seterrno(saved_errno);
   return r;
 }
 
