@@ -402,6 +402,7 @@ set(irix_wrapper_files
   irix_wrappers/grp.h
   irix_wrappers/pwd.h
   irix_wrappers/search.h
+  irix_wrappers/semaphore.h
   irix_wrappers/signal.h
   irix_wrappers/syslog.h
   irix_wrappers/__irix_endian_swap.h
