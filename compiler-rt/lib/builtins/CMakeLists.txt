@@ -248,6 +248,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "IRIX")
     irix/ssp.c
     irix/compat_bsd2.c
     irix/strsignal.c
+    irix/random.c
     irix/env.c
     irix/locale.c
     irix/clock.c

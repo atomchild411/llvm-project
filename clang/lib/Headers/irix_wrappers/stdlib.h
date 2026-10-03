@@ -57,6 +57,10 @@ const char *getprogname(void);
 void setprogname(const char *);
 /* OpenBSD's, from irix/compat_bsd2.c. */
 long long strtonum(const char *, long long, long long, const char **);
+/* The BSDs' and glibc's, from irix/random.c (IRIX's /dev/urandom). */
+__UINT32_TYPE__ arc4random(void);
+void arc4random_buf(void *, size_t);
+__UINT32_TYPE__ arc4random_uniform(__UINT32_TYPE__);
 /* POSIX 2001's, which IRIX's libc lacks: compiler-rt's irix/env.c. */
 int setenv(const char *, const char *, int);
 int unsetenv(const char *);

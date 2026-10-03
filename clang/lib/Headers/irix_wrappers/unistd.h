@@ -60,6 +60,8 @@ int linkat(int, const char *, int, const char *, int);
 ssize_t readlinkat(int, const char *__restrict, char *__restrict, size_t);
 int symlinkat(const char *, int, const char *);
 int unlinkat(int, const char *, int);
+/* glibc's and OpenBSD's, from irix/random.c (IRIX's /dev/urandom). */
+int getentropy(void *, size_t);
 #ifdef __cplusplus
 }
 #endif
