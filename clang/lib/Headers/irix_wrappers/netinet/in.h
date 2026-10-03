@@ -29,6 +29,16 @@
 #define INET_ADDRSTRLEN 16
 #endif
 
+/* The argument of IP_ADD_MEMBERSHIP and IP_DROP_MEMBERSHIP, which IRIX
+ * declares only in SGI mode (the option names it defines in every mode);
+ * glibc and the BSDs declare it in all of them. IRIX's layout. */
+#if !_SGIAPI
+struct ip_mreq {
+  struct in_addr imr_multiaddr;
+  struct in_addr imr_interface;
+};
+#endif
+
 /* SCTP's IANA protocol number, which Linux and the BSDs define whether or
  * not they support SCTP, and Erlang uses unconditionally.  IRIX has no SCTP:
  * a socket asked for it fails with EPROTONOSUPPORT. */
