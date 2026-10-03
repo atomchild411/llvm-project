@@ -35,7 +35,16 @@
 #define HUGE_VAL __builtin_huge_val()
 #endif
 
+/* IRIX's <math.h> declares C89's cabs and cabsl, on a struct of two
+ * doubles or long doubles; its C99 <complex.h> defines C99's, on a double
+ * or long double complex, and a program that includes both (ngspice)
+ * stopped on conflicting types. Read the struct ones under other names:
+ * cabs and cabsl are C99's. */
+#define cabs __irix_struct_cabs
+#define cabsl __irix_struct_cabsl
 #include_next <math.h>
+#undef cabs
+#undef cabsl
 
 /* C99's float_t and double_t, which IRIX's header lacks: MIPS evaluates
  * float and double in their own precision (FLT_EVAL_METHOD 0). */
@@ -195,7 +204,7 @@ long double nexttowardl(long double, long double) __asm__("nextafter");
 double nexttoward(double, long double) __asm__("nextafter");
 #if _SGIAPI
 /* Two long doubles, so two doubles: cabs's struct. */
-long double cabsl(struct __cabsl_s) __asm__("cabs");
+long double __irix_struct_cabsl(struct __cabsl_s) __asm__("cabs");
 #endif
 #ifdef __cplusplus
 }
