@@ -468,6 +468,7 @@ set(irix_wrapper_arpa_files
 )
 set(irix_wrapper_net_files
   irix_wrappers/net/if.h
+  irix_wrappers/net/if_dl.h
 )
 set(irix_wrapper_netinet_files
   irix_wrappers/netinet/in.h
