@@ -34,6 +34,13 @@
  * function, same calling convention. */
 #define putenv __irix_putenv_declaration
 #include_next <stdlib.h>
+
+/* alloca: glibc's and the BSDs' <stdlib.h> declare it outside strict ISO C
+ * (and for C++ always, where g++ defines _GNU_SOURCE); IRIX's only in
+ * <alloca.h>, which maps it to the compiler's builtin. */
+#if defined(__cplusplus) || !defined(__STRICT_ANSI__)
+#include <alloca.h>
+#endif
 #undef putenv
 #ifdef __IRIX_GETOPT_INDIRECT_STDLIB
 #undef __IRIX_GETOPT_INDIRECT
