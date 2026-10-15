@@ -9,13 +9,14 @@
 // IRIX before 6.5.22 has only C89's wide-character functions. These are the
 // C95 and C99 ones C and C++ libraries use, declared by clang's IRIX
 // <wchar.h> wrapper; POSIX 2008's strnlen, wcsnlen, wcsdup and wcscasecmp,
-// which no IRIX has; and C99's strtoimax, strtoumax and imaxabs, which
-// IRIX's <inttypes.h> declares (in its own API mode only) but no IRIX
-// library defines. They live here, in the builtins every IRIX link takes,
-// so that a program built for 6.5.7 runs there; a libc that has them wins,
-// since an archive member is only taken for a symbol nothing else defines.
-// Calls reach them by name, too: clang lowers __builtin_wmemcmp and friends
-// to calls when it cannot fold them.
+// which no IRIX has; and C99's strtoimax, strtoumax, imaxabs and imaxdiv,
+// which IRIX's libc lacks before 6.5.22 (imaxabs and imaxdiv in every
+// release) and clang's IRIX <inttypes.h> wrapper declares. They live here,
+// in the builtins every IRIX link takes, so that a program built for 6.5.7
+// runs there; a libc that has them wins, since an archive member is only
+// taken for a symbol nothing else defines. Calls reach them by name, too:
+// clang lowers __builtin_wmemcmp and friends to calls when it cannot fold
+// them.
 //
 // The restartable conversions sit on the stateless mbtowc and wctomb: no
 // multibyte encoding IRIX has keeps shift state, so an mbstate_t is only
@@ -65,6 +66,7 @@
 #pragma weak strtoimax
 #pragma weak strtoumax
 #pragma weak imaxabs
+#pragma weak imaxdiv
 
 
 wchar_t *wmemchr(const wchar_t *s, wchar_t c, size_t n) {
@@ -328,5 +330,12 @@ uintmax_t strtoumax(const char *__restrict s, char **__restrict end,
 }
 
 intmax_t imaxabs(intmax_t j) { return j < 0 ? -j : j; }
+
+imaxdiv_t imaxdiv(intmax_t numer, intmax_t denom) {
+  imaxdiv_t r;
+  r.quot = numer / denom;
+  r.rem = numer % denom;
+  return r;
+}
 
 #endif // defined(__sgi)

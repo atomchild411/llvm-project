@@ -18,15 +18,16 @@
  * code (netpbm) uses SIZE_MAX too, and outside C99 our <stdint.h> defines
  * what it has itself rather than reading IRIX's C99-only header.
  *
- * strtoimax, strtoumax and imaxabs: IRIX before 6.5.22 declares the first
- * two only in its own API mode, and its libraries define none of them;
- * compiler-rt's builtins do (irix/libc_compat.c). Declare them in every C99
- * mode. 6.5.22's header declares all of C99's functions in C99 mode, and its
- * libc defines strtoimax, strtoumax, wcstoimax and wcstoumax (imaxdiv is
- * declared but defined nowhere). IRIX's declarations have no extern "C", so
- * in C++ they would give the functions C++ linkage: all six are renamed out
- * of the way while its header is read, and declared again here, the last
- * three only when the header is 6.5.22's (the one that defines PRId8).
+ * strtoimax, strtoumax, imaxabs and imaxdiv: IRIX before 6.5.22 declares
+ * the first two only in its own API mode, has no imaxdiv_t, and its
+ * libraries define none of them; compiler-rt's builtins do
+ * (irix/libc_compat.c). Declare them, and imaxdiv_t where IRIX lacks it, in
+ * every C99 mode. 6.5.22's header declares all six of C99's functions in
+ * C99 mode, and its libc defines strtoimax, strtoumax, wcstoimax and
+ * wcstoumax. IRIX's declarations have no extern "C", so in C++ they would
+ * give the functions C++ linkage: all six are renamed out of the way while
+ * its header is read and declared again here, wcstoimax and wcstoumax only
+ * when the header is 6.5.22's (the one that defines PRId8).
  */
 
 #ifndef __CLANG_IRIX_INTTYPES_H
@@ -100,8 +101,14 @@ extern "C" {
 intmax_t strtoimax(const char *__restrict, char **__restrict, int);
 uintmax_t strtoumax(const char *__restrict, char **__restrict, int);
 intmax_t imaxabs(intmax_t);
-#ifdef PRId8
+#ifndef PRId8
+typedef struct {
+  intmax_t quot;
+  intmax_t rem;
+} imaxdiv_t;
+#endif
 imaxdiv_t imaxdiv(intmax_t, intmax_t);
+#ifdef PRId8
 intmax_t wcstoimax(const wchar_t *__restrict, wchar_t **__restrict, int);
 uintmax_t wcstoumax(const wchar_t *__restrict, wchar_t **__restrict, int);
 #endif
