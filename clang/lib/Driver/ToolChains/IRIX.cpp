@@ -164,7 +164,9 @@ void IRIX::AddCXXStdlibLibArgs(const ArgList &Args,
     // clang running on IRIX finds the libc++ it was linked with through
     // DT_RPATH. (Cross-compiled, where the driver's tree is not the
     // program's, it is left to the -rpath of the machine it will run on.)
+    // A program with libc++ linked in statically has no use for it.
     if (!RuntimeLibDir.empty() &&
+        !Args.hasArg(options::OPT_static_libstdcxx, options::OPT_static) &&
         llvm::Triple(llvm::sys::getProcessTriple()).isOSIRIX()) {
       CmdArgs.push_back("-rpath");
       CmdArgs.push_back(Args.MakeArgString(RuntimeLibDir));
