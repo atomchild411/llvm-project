@@ -22,8 +22,14 @@
 #include <sys/bsd_types.h>
 #include_next <net/if.h>
 
+/* The functions unconditionally: IRIX declares them only in its INET6
+ * (IPv6 kit) builds, and IF_NAMESIZE is no sign of them -- 6.5.22 defines
+ * it without them, and c-ares defines its own before including this
+ * header, which left if_indextoname undeclared there. The same prototype
+ * again is harmless where IRIX does declare them. */
 #ifndef IF_NAMESIZE
 #define IF_NAMESIZE IFNAMSIZ
+#endif
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -31,7 +37,6 @@ unsigned int if_nametoindex(const char *);
 char *if_indextoname(unsigned int, char *);
 #ifdef __cplusplus
 }
-#endif
 #endif
 
 #endif /* __CLANG_IRIX_NET_IF_H */
