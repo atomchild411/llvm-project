@@ -67,11 +67,14 @@ int unsetenv(const char *);
 /* POSIX 2008's, from irix/misc.c. */
 char *mkdtemp(char *);
 /* POSIX 2001's posix_memalign, C11's aligned_alloc and POSIX 2024's
- * reallocarray and mkostemp, from irix/posix2008.c. */
+ * reallocarray and mkostemp, and the BSDs' and glibc's mkstemps and
+ * mkostemps, from irix/posix2008.c. */
 int posix_memalign(void **, size_t, size_t);
 void *aligned_alloc(size_t, size_t);
 void *reallocarray(void *, size_t, size_t);
 int mkostemp(char *, int);
+int mkstemps(char *, int);
+int mkostemps(char *, int, int);
 #ifdef __cplusplus
 }
 #endif

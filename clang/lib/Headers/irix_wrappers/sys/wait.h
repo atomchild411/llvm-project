@@ -28,4 +28,14 @@ pid_t wait3(int *, int, struct rusage *);
 #endif
 #endif
 
+/* The BSDs' and glibc's wait4, which IRIX lacks: compiler-rt's irix/misc.c. */
+struct rusage;
+#ifdef __cplusplus
+extern "C" {
+#endif
+pid_t wait4(pid_t, int *, int, struct rusage *);
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* __CLANG_IRIX_SYS_WAIT_H */

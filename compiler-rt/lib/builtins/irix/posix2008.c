@@ -14,6 +14,7 @@
 //               strerror_r (the POSIX one, returning int)
 //   <stdio.h>   getline getdelim dprintf vdprintf asprintf vasprintf
 //   <stdlib.h>  posix_memalign aligned_alloc reallocarray mkostemp
+//               mkstemps mkostemps (the BSDs' and glibc's)
 //   <time.h>    timegm
 //   <dirent.h>  dirfd
 //
@@ -58,6 +59,8 @@
 #pragma weak posix_memalign
 #pragma weak aligned_alloc
 #pragma weak mkostemp
+#pragma weak mkstemps
+#pragma weak mkostemps
 #pragma weak reallocarray
 #pragma weak timegm
 #pragma weak dirfd
@@ -296,6 +299,47 @@ int mkostemp(char *tmpl, int flags) {
     return -1;
   }
   return fd;
+}
+
+// mkostemps and mkstemps: a suffix after the XXXXXX, which IRIX's mkstemp
+// does not take, so the name is made here (arc4random, irix/random.c) and
+// opened O_EXCL; the flags as for mkostemp.
+int mkostemps(char *tmpl, int suffixlen, int flags) {
+  static const char chars[] =
+      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  size_t len = tmpl ? strlen(tmpl) : 0;
+  int cloexec = 0, tries;
+  char *x;
+
+  if (suffixlen < 0 || len < (size_t)suffixlen + 6 ||
+      memcmp(tmpl + len - suffixlen - 6, "XXXXXX", 6) != 0) {
+    __irix_seterrno(EINVAL);
+    return -1;
+  }
+#ifdef __IRIX_O_CLOEXEC
+  cloexec = flags & __IRIX_O_CLOEXEC;
+  flags &= ~__IRIX_O_CLOEXEC;
+#endif
+  x = tmpl + len - suffixlen - 6;
+  for (tries = 0; tries < 10000; tries++) {
+    int i, fd;
+    for (i = 0; i < 6; i++)
+      x[i] = chars[arc4random_uniform(sizeof(chars) - 1)];
+    fd = open(tmpl, O_RDWR | O_CREAT | O_EXCL | flags, 0600);
+    if (fd >= 0) {
+      if (cloexec)
+        fcntl(fd, F_SETFD, FD_CLOEXEC);
+      return fd;
+    }
+    if (errno != EEXIST)
+      return -1;
+  }
+  __irix_seterrno(EEXIST);
+  return -1;
+}
+
+int mkstemps(char *tmpl, int suffixlen) {
+  return mkostemps(tmpl, suffixlen, 0);
 }
 
 void *reallocarray(void *p, size_t n, size_t size) {

@@ -10,7 +10,8 @@
 // mkdtemp (POSIX 2008 and 2024), declared by clang's IRIX <string.h> and
 // <stdlib.h>; and basename and dirname, which IRIX keeps in libgen (its
 // <libgen.h> declares them): a program that links libgen gets IRIX's, one
-// that does not gets these, with the same POSIX behaviour.
+// that does not gets these, with the same POSIX behaviour. And the BSDs' (and
+// glibc's) wait4, declared by clang's IRIX <sys/wait.h>.
 //
 // Its own file, so a program is only given these when it asks for them.
 //
@@ -22,8 +23,10 @@
 #include "irix_errno.h"
 #include <stdlib.h>
 #include <string.h>
+#include <sys/resource.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -33,6 +36,7 @@
 #pragma weak mkdtemp
 #pragma weak basename
 #pragma weak dirname
+#pragma weak wait4
 
 
 void *memmem(const void *haystack, size_t hlen, const void *needle,
@@ -111,6 +115,46 @@ char *dirname(char *path) {
     end--;
   end[1] = 0;
   return path;
+}
+
+// wait4: IRIX has wait3, which waits for any child, and waitpid, which
+// reports no usage. For one child, its usage is what the children's total
+// (getrusage) grew by while waiting: exact unless another thread reaps a child
+// meanwhile.
+pid_t wait4(pid_t pid, int *status, int options, struct rusage *ru) {
+  struct rusage before, after;
+  pid_t r;
+
+  if (!ru)
+    return waitpid(pid, status, options);
+  if (pid == -1)
+    return wait3(status, options, ru);
+  getrusage(RUSAGE_CHILDREN, &before);
+  r = waitpid(pid, status, options);
+  if (r <= 0)
+    return r;
+  getrusage(RUSAGE_CHILDREN, &after);
+  memset(ru, 0, sizeof(*ru));
+#define __IRIX_TV_SUB(f)                                                       \
+  do {                                                                         \
+    ru->f.tv_sec = after.f.tv_sec - before.f.tv_sec;                           \
+    ru->f.tv_usec = after.f.tv_usec - before.f.tv_usec;                        \
+    if (ru->f.tv_usec < 0) {                                                   \
+      ru->f.tv_sec--;                                                          \
+      ru->f.tv_usec += 1000000;                                                \
+    }                                                                          \
+  } while (0)
+  __IRIX_TV_SUB(ru_utime);
+  __IRIX_TV_SUB(ru_stime);
+#undef __IRIX_TV_SUB
+  ru->ru_maxrss = after.ru_maxrss;
+  ru->ru_minflt = after.ru_minflt - before.ru_minflt;
+  ru->ru_majflt = after.ru_majflt - before.ru_majflt;
+  ru->ru_inblock = after.ru_inblock - before.ru_inblock;
+  ru->ru_oublock = after.ru_oublock - before.ru_oublock;
+  ru->ru_nvcsw = after.ru_nvcsw - before.ru_nvcsw;
+  ru->ru_nivcsw = after.ru_nivcsw - before.ru_nivcsw;
+  return r;
 }
 
 #endif // defined(__sgi)
