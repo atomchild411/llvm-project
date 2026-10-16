@@ -144,6 +144,17 @@ struct ipv6_mreq {
 #define IPV6_V6ONLY 27
 #define IPV6_TCLASS 61
 #endif
+
+/* RFC 3542's packet information, with IRIX's own option numbers and layout
+ * (which IRIX declares only under INET6): PowerDNS names them. */
+#ifndef IPV6_PKTINFO
+#define IPV6_RECVPKTINFO 43
+#define IPV6_PKTINFO 44
+#endif
+struct in6_pktinfo {
+  struct in6_addr ipi6_addr;
+  int ipi6_ifindex;
+};
 #endif /* !INET6 */
 
 #endif /* __CLANG_IRIX_NETINET_IN_H */
