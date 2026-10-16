@@ -29,6 +29,35 @@ extern "C++" {
 }
 #endif
 #include_next <sys/select.h>
+
+/* select() itself, wherever IRIX declares it extern: in <sys/time.h> in the
+ * X/Open UX modes, in <unistd.h> in SGI and BSD modes. POSIX (and glibc)
+ * declare it in this header, and gnulib's replacement <sys/select.h> counts
+ * on that: it includes this one, then defines select to rpl_select. IRIX's
+ * own declaration comes after <sys/time.h>'s #include <sys/select.h>, so it
+ * declared rpl_select instead, and gnulib's select.c, which calls the
+ * system's select, found none (m4). Not where IRIX's <sys/time.h> has its
+ * X/Open 4 static select instead. 6.5.22 (it has internal/ headers) extends
+ * both to X/Open 5. */
+#if __has_include(<internal/wchar_core.h>)
+#define __CLANG_IRIX_XOPEN_SELECT (_XOPEN4UX || _XOPEN5)
+#define __CLANG_IRIX_EXTERN_SELECT ((_NO_XOPEN4 && _NO_XOPEN5) || _ABIAPI)
+#else
+#define __CLANG_IRIX_XOPEN_SELECT _XOPEN4UX
+#define __CLANG_IRIX_EXTERN_SELECT (_NO_XOPEN4 || _ABIAPI)
+#endif
+#if (__CLANG_IRIX_XOPEN_SELECT || _SGIAPI || defined(_BSD_TYPES) || \
+     defined(_BSD_COMPAT)) &&                                          \
+    !(__CLANG_IRIX_XOPEN_SELECT && !__CLANG_IRIX_EXTERN_SELECT)
+struct timeval;
+#ifdef __cplusplus
+extern "C"
+#endif
+int select(int, fd_set *, fd_set *, fd_set *, struct timeval *);
+#endif
+#undef __CLANG_IRIX_XOPEN_SELECT
+#undef __CLANG_IRIX_EXTERN_SELECT
+
 #include <sys/time.h>
 
 /* IRIX gives struct timeval and select() only in X/Open, SGI and BSD modes.
