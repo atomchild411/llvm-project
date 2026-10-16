@@ -6,9 +6,9 @@
  *
  *===-----------------------------------------------------------------------===
  *
- * RFC 3493's if_nametoindex and if_indextoname, and IF_NAMESIZE, which IRIX
- * lacks. They exist for IPv6 scope ids, which IRIX has no use for: compiler-rt
- * (irix/netdb.c) defines them to find no interface.
+ * RFC 3493's if_nametoindex, if_indextoname, if_nameindex and
+ * if_freenameindex, and IF_NAMESIZE, which IRIX lacks: compiler-rt
+ * (irix/ifnameindex.c) defines them over SIOCGIFCONF.
  *
  * IRIX's header also uses the BSD types u_char, u_short, ... which
  * <sys/types.h> gives only outside POSIX and X/Open modes: bring them in
@@ -35,6 +35,15 @@ extern "C" {
 #endif
 unsigned int if_nametoindex(const char *);
 char *if_indextoname(unsigned int, char *);
+/* IRIX's struct for it is also INET6's only. */
+#ifndef INET6
+struct if_nameindex {
+  unsigned int if_index;
+  char *if_name;
+};
+#endif
+struct if_nameindex *if_nameindex(void);
+void if_freenameindex(struct if_nameindex *);
 #ifdef __cplusplus
 }
 #endif

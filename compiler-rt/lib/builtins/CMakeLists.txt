@@ -271,6 +271,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "IRIX")
     irix/dladdr.c
     irix/pselect.c
     irix/ifaddrs.c
+    irix/ifnameindex.c
     irix/process_bsd.c
     irix/memstream.c
     irix/wscanf.c
