@@ -75,6 +75,8 @@ void *reallocarray(void *, size_t, size_t);
 int mkostemp(char *, int);
 int mkstemps(char *, int);
 int mkostemps(char *, int, int);
+/* POSIX's posix_openpt, from irix/pty.c (_getpty). */
+int posix_openpt(int);
 #ifdef __cplusplus
 }
 #endif

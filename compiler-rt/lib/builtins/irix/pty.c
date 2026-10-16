@@ -12,6 +12,10 @@
 // opens a master and returns its slave's name (and, given nofork 0, has
 // mkpts give the slave to the caller).
 //
+// posix_openpt (POSIX), which IRIX lacks too, is _getpty() for the master
+// alone: grantpt, unlockpt and ptsname, which IRIX's libc has, then work on
+// it as on any SVR4 system.
+//
 // login_tty: IRIX has no TIOCSCTTY. As on any SVR4 system, a session leader
 // gets its controlling terminal by opening one without O_NOCTTY, so
 // login_tty opens the terminal by name after setsid().
@@ -54,6 +58,15 @@ int openpty(int *amaster, int *aslave, char *name,
   *amaster = master;
   *aslave = slave;
   return 0;
+}
+
+#pragma weak posix_openpt
+
+int posix_openpt(int flags) {
+  int master;
+  if (_getpty(&master, flags & (O_RDWR | O_NOCTTY), 0600, 0) == NULL)
+    return -1;
+  return master;
 }
 
 int login_tty(int fd) {
