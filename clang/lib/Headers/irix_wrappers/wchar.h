@@ -113,6 +113,22 @@ int wprintf(const wchar_t *__restrict, ...);
 #endif
 #endif /* __IRIX_VERSION__ < 60522 */
 
+/* C95's wide scanf (and C99's v forms), which IRIX's libc lacks:
+ * compiler-rt's (irix/wscanf.c), through the multibyte C99 scanf. */
+#ifdef __cplusplus
+extern "C" {
+#endif
+int swscanf(const wchar_t *__restrict, const wchar_t *__restrict, ...);
+int vswscanf(const wchar_t *__restrict, const wchar_t *__restrict,
+             __builtin_va_list);
+int fwscanf(FILE *__restrict, const wchar_t *__restrict, ...);
+int vfwscanf(FILE *__restrict, const wchar_t *__restrict, __builtin_va_list);
+int wscanf(const wchar_t *__restrict, ...);
+int vwscanf(const wchar_t *__restrict, __builtin_va_list);
+#ifdef __cplusplus
+}
+#endif
+
 /* POSIX 2008's, which no IRIX has: compiler-rt's (irix/libc_compat.c). */
 #ifdef __cplusplus
 extern "C" {
