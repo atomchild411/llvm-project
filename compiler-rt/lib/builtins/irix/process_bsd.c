@@ -6,9 +6,10 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// daemon (<unistd.h>), _Exit (<stdlib.h>) and vfork (<unistd.h>), declared
-// by clang's IRIX wrappers; packages in the IRIX pkgsrc bulk build failed to
-// link without them. Weak, so a program that brings its own copy keeps it.
+// daemon (<unistd.h>), _Exit (<stdlib.h>), vfork and issetugid (<unistd.h>),
+// declared by clang's IRIX wrappers; packages in the IRIX pkgsrc bulk build
+// failed to link without them. Weak, so a program that brings its own copy
+// keeps it.
 //
 // daemon() is glibc's and the BSDs': fork, setsid, chdir("/") unless
 // nochdir, stdin/stdout/stderr to /dev/null unless noclose, and no other
@@ -29,6 +30,7 @@
 #pragma weak daemon
 #pragma weak _Exit
 #pragma weak vfork
+#pragma weak issetugid
 
 int daemon(int nochdir, int noclose) {
   switch (fork()) {
@@ -60,5 +62,13 @@ void _Exit(int status) { _exit(status); }
 
 extern pid_t _vfork(void);
 pid_t vfork(void) { return _vfork(); }
+
+// The BSDs' issetugid(): whether the process runs with privileges it was
+// not started with. IRIX keeps no such flag; a real and effective user or
+// group that differ is what set-id programs show (pcsc-lite needs it, or
+// glibc's secure_getenv, which IRIX lacks too).
+int issetugid(void) {
+  return getuid() != geteuid() || getgid() != getegid();
+}
 
 #endif // __sgi
