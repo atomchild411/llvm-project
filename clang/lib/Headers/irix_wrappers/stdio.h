@@ -166,6 +166,13 @@ int asprintf(char **, const char *, ...)
 int vasprintf(char **, const char *, __builtin_va_list)
     __attribute__((__format__(__printf__, 2, 0)));
 int renameat(int, const char *, int, const char *); /* irix/atfile.c */
+/* fmemopen and open_memstream, from irix/memstream.c, where each is a
+ * tmpfile(): fclose and fflush go there too, to bring their buffers up to
+ * date. */
+FILE *fmemopen(void *__restrict, size_t, const char *__restrict);
+FILE *open_memstream(char **, size_t *);
+extern int fclose(FILE *) __asm__("__irix_fclose");
+extern int fflush(FILE *) __asm__("__irix_fflush");
 #ifdef __cplusplus
 }
 #endif
