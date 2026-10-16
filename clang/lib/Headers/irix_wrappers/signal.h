@@ -66,4 +66,16 @@ void (*bsd_signal(int, void (*)(int)))(int);
 typedef void (*sig_t)(int);
 #endif
 
+/* NSIG, one more than the highest signal number: IRIX's (65), which its
+ * header defines only in SGI and ABI modes; the BSDs and glibc (with
+ * _DEFAULT_SOURCE) give it, and glibc its other name, _NSIG. */
+#if !defined(__STRICT_ANSI__)
+#ifndef NSIG
+#define NSIG 65
+#endif
+#ifndef _NSIG
+#define _NSIG NSIG
+#endif
+#endif
+
 #endif /* __CLANG_IRIX_SIGNAL_H */
