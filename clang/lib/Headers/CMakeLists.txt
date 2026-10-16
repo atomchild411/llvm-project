@@ -477,7 +477,9 @@ set(irix_wrapper_net_files
 set(irix_wrapper_netinet_files
   irix_wrappers/netinet/in.h
   irix_wrappers/netinet/ip.h
+  irix_wrappers/netinet/ip_icmp.h
   irix_wrappers/netinet/tcp.h
+  irix_wrappers/netinet/udp.h
 )
 # Installed under irix_wrappers/machine/.
 set(irix_wrapper_machine_files
