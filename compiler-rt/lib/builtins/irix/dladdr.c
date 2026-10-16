@@ -22,6 +22,7 @@
 #include <dlfcn.h>
 #include <rld_interface.h>
 
+#pragma weak dladdr
 int dladdr(const void *addr, Dl_info *info) {
   return _rld_new_interface(_RLD_DLADDR, addr, info) != 0;
 }

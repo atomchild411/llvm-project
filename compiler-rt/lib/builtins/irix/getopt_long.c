@@ -40,6 +40,7 @@
 #pragma weak getopt_long_only
 
 
+#pragma weak optreset
 int optreset;
 
 static const char *nextchar; // the rest of a group of short options

@@ -23,6 +23,7 @@
 extern char *_sys_siglist[];
 extern int _sys_nsig;
 
+#pragma weak strsignal
 char *strsignal(int sig) {
   if (sig > 0 && sig < _sys_nsig && _sys_siglist[sig])
     return _sys_siglist[sig];

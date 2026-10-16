@@ -23,6 +23,7 @@
 #include <pthread.h>
 #include <time.h>
 
+#pragma weak pthread_cond_timedwait_relative_np
 int pthread_cond_timedwait_relative_np(pthread_cond_t *cond,
                                        pthread_mutex_t *mutex,
                                        const struct timespec *rel) {

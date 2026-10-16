@@ -49,7 +49,9 @@
 extern int inet_pton(int, const char *, void *);
 extern const char *inet_ntop(int, const void *, char *, size_t);
 
+#pragma weak in6addr_any
 const struct in6_addr in6addr_any = IN6ADDR_ANY_INIT;
+#pragma weak in6addr_loopback
 const struct in6_addr in6addr_loopback = IN6ADDR_LOOPBACK_INIT;
 
 #define KNOWN_AI_FLAGS                                                         \
