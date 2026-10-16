@@ -82,6 +82,9 @@ std::string IRIX::getDynamicLinker(const ArgList &Args) const {
 void IRIX::addClangTargetOptions(const ArgList &DriverArgs,
                                  ArgStringList &CC1Args,
                                  Action::OffloadKind) const {
+  // MIPSpro's options, from IRIX makefiles: accepted and ignored.
+  DriverArgs.ClaimAllArgs(options::OPT_irix_mipspro_Group);
+
   // rld runs DT_INIT/DT_FINI, not DT_INIT_ARRAY: constructors go in .ctors,
   // which compiler-rt's crtbegin walks.
   if (!DriverArgs.hasFlag(options::OPT_fuse_init_array,
@@ -222,6 +225,7 @@ void irix::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   // It is still no unused argument there: LLVM's runtimes pass it to every
   // compiler check, with -Werror (libunwind's -funwind-tables check failed).
   Args.ClaimAllArgs(options::OPT_unwindlib_EQ);
+  Args.ClaimAllArgs(options::OPT_irix_mipspro_Group);
 
   if (!D.SysRoot.empty())
     CmdArgs.push_back(Args.MakeArgString("--sysroot=" + D.SysRoot));
