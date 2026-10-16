@@ -272,6 +272,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "IRIX")
     irix/pselect.c
     irix/ifaddrs.c
     irix/process_bsd.c
+    irix/pty.c
     irix/locale_l.c
     irix/fcntl.c
     irix/grouplist.c

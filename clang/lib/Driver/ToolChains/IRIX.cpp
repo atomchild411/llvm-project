@@ -308,6 +308,20 @@ void irix::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   size_t InputsBegin = CmdArgs.size();
   AddLinkerInputs(TC, Inputs, Args, CmdArgs, JA);
 
+  // IRIX has no libutil: its pseudo-terminal functions (openpty, forkpty,
+  // login_tty) are in the builtins library (irix/pty.c). Links that ask for
+  // it -- BSD and Linux makefiles, configure checks -- get nothing for it.
+  for (size_t I = InputsBegin; I < CmdArgs.size();) {
+    StringRef A = CmdArgs[I];
+    if (A == "-lutil")
+      CmdArgs.erase(CmdArgs.begin() + I);
+    else if (A == "-l" && I + 1 < CmdArgs.size() &&
+             StringRef(CmdArgs[I + 1]) == "util")
+      CmdArgs.erase(CmdArgs.begin() + I, CmdArgs.begin() + I + 2);
+    else
+      ++I;
+  }
+
   // IRIX's libGL.so has GLX and the dispatch only: the GL functions are in
   // libGLcore.so, which libGL.so needs. SGI's ld resolved symbols through a
   // library's own dependencies, lld does not: a link with libGL gets

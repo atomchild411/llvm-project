@@ -426,6 +426,7 @@ set(irix_wrapper_files
   irix_wrappers/math.h
   irix_wrappers/netdb.h
   irix_wrappers/pthread.h
+  irix_wrappers/pty.h
   irix_wrappers/spawn.h
   irix_wrappers/stdint.h
   irix_wrappers/stdio.h
@@ -433,6 +434,7 @@ set(irix_wrapper_files
   irix_wrappers/string.h
   irix_wrappers/time.h
   irix_wrappers/unistd.h
+  irix_wrappers/util.h
   irix_wrappers/uuid.h
   irix_wrappers/wchar.h
   irix_wrappers/complex.h
