@@ -478,6 +478,7 @@ set(irix_wrapper_net_files
   irix_wrappers/net/if_dl.h
 )
 set(irix_wrapper_netinet_files
+  irix_wrappers/netinet/icmp6.h
   irix_wrappers/netinet/in.h
   irix_wrappers/netinet/ip6.h
   irix_wrappers/netinet/ip.h
