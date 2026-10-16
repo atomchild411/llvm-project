@@ -287,6 +287,20 @@ void irix::Linker::ConstructJob(Compilation &C, const JobAction &JA,
                   D.getLTOMode() == LTOK_Thin);
   }
 
+  // The builtins once more, ahead of the inputs. Their libc stand-ins
+  // (__irix_c99_printf, ...) have default visibility, so every shared library
+  // that uses one exports it, and lld binds a program's reference to the
+  // first definition it meets: given a library first (libc++abi.so,
+  // libz.so), the program took the stand-in from it, and stopped at startup
+  // (rld: unresolvable symbol, exit 1, nothing printed) wherever the
+  // installed copy of that library had a different set. Seen first, the
+  // archive's members are pulled in by the program's own references, so it
+  // carries the stand-ins it calls; rld still binds every object to that one
+  // copy, as it would libc's.
+  if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs) &&
+      !IsStatic)
+    addBuiltinsAsLibrary(TC, Args, CmdArgs);
+
   size_t InputsBegin = CmdArgs.size();
   AddLinkerInputs(TC, Inputs, Args, CmdArgs, JA);
 
