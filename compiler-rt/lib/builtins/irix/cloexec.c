@@ -18,6 +18,10 @@
 // O_DIRECTORY: the descriptor opened must be a directory (fstat), or it is
 // closed and the open fails with ENOTDIR.
 //
+// pipe2 and dup3 (POSIX 2024; Linux and the BSDs), which IRIX lacks, the same
+// way: pipe or dup2, then the flags (O_CLOEXEC, and O_NONBLOCK for pipe2)
+// through fcntl.
+//
 // Its own file, so a program is only given it when it asks for it.
 //
 //===----------------------------------------------------------------------===//
@@ -80,6 +84,45 @@ int __irix_open(const char *path, int flags, ...) {
   if (fd >= 0 && (flags & __IRIX_O_CLOEXEC))
     fcntl(fd, F_SETFD, FD_CLOEXEC);
   return fd;
+}
+
+#pragma weak pipe2
+#pragma weak dup3
+
+int pipe2(int fds[2], int flags) {
+  int i;
+
+  if (flags & ~(__IRIX_O_CLOEXEC | O_NONBLOCK)) {
+    __irix_seterrno(EINVAL);
+    return -1;
+  }
+  if (pipe(fds) != 0)
+    return -1;
+  for (i = 0; i < 2; i++) {
+    if (flags & __IRIX_O_CLOEXEC)
+      fcntl(fds[i], F_SETFD, FD_CLOEXEC);
+    if ((flags & O_NONBLOCK) &&
+        fcntl(fds[i], F_SETFL, fcntl(fds[i], F_GETFL) | O_NONBLOCK) < 0) {
+      int e = errno;
+      close(fds[0]);
+      close(fds[1]);
+      __irix_seterrno(e);
+      return -1;
+    }
+  }
+  return 0;
+}
+
+int dup3(int oldfd, int newfd, int flags) {
+  if (oldfd == newfd || (flags & ~__IRIX_O_CLOEXEC)) {
+    __irix_seterrno(EINVAL);
+    return -1;
+  }
+  if (dup2(oldfd, newfd) < 0)
+    return -1;
+  if (flags & __IRIX_O_CLOEXEC)
+    fcntl(newfd, F_SETFD, FD_CLOEXEC);
+  return newfd;
 }
 
 #endif // defined(__sgi)

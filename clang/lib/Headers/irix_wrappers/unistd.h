@@ -62,6 +62,9 @@ int symlinkat(const char *, int, const char *);
 int unlinkat(int, const char *, int);
 /* glibc's and OpenBSD's, from irix/random.c (IRIX's /dev/urandom). */
 int getentropy(void *, size_t);
+/* POSIX 2024's pipe2 and dup3, from irix/cloexec.c (O_CLOEXEC, O_NONBLOCK). */
+int pipe2(int[2], int);
+int dup3(int, int, int);
 #ifdef __cplusplus
 }
 #endif
