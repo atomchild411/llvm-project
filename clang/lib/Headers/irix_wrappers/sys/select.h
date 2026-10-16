@@ -58,6 +58,38 @@ int select(int, fd_set *, fd_set *, fd_set *, struct timeval *);
 #undef __CLANG_IRIX_XOPEN_SELECT
 #undef __CLANG_IRIX_EXTERN_SELECT
 
+/* (Before the <sys/time.h> below, like select: IRIX's <sys/time.h> includes
+ * <sys/select.h> again, and a replacement one (gnulib's) then defines pselect
+ * to rpl_pselect before a declaration after it is read: grep.) */
+/* pselect(), which IRIX lacks (6.5.7 and 6.5.22): compiler-rt's IRIX
+ * builtins provide it over sigprocmask and select.  POSIX has this header
+ * define sigset_t; IRIX's <signal.h> cannot be included from here (it needs
+ * types that come later), so sigset_t is declared under IRIX's own guard,
+ * with its layout. */
+#ifndef _SIGSET_T
+#define _SIGSET_T
+typedef struct {
+  __uint32_t __sigbits[4];
+} sigset_t;
+#endif
+/* The timespec tag IRIX uses in this mode, as in <sys/stat.h>: IRIX's
+ * <sys/types.h> includes this header, so <sys/timespec.h> cannot be. */
+#ifdef __cplusplus
+extern "C" {
+#endif
+#if _POSIX93 || _ABIAPI || _XOPEN5
+struct timespec;
+int pselect(int, fd_set *, fd_set *, fd_set *, const struct timespec *,
+            const sigset_t *);
+#else
+struct __timespec;
+int pselect(int, fd_set *, fd_set *, fd_set *, const struct __timespec *,
+            const sigset_t *);
+#endif
+#ifdef __cplusplus
+}
+#endif
+
 #include <sys/time.h>
 
 /* IRIX gives struct timeval and select() only in X/Open, SGI and BSD modes.
@@ -89,34 +121,5 @@ extern "C"
 int select(int, fd_set *, fd_set *, fd_set *, struct timeval *);
 #endif
 #undef __CLANG_IRIX_HAS_SELECT
-
-/* pselect(), which IRIX lacks (6.5.7 and 6.5.22): compiler-rt's IRIX
- * builtins provide it over sigprocmask and select.  POSIX has this header
- * define sigset_t; IRIX's <signal.h> cannot be included from here (it needs
- * types that come later), so sigset_t is declared under IRIX's own guard,
- * with its layout. */
-#ifndef _SIGSET_T
-#define _SIGSET_T
-typedef struct {
-  __uint32_t __sigbits[4];
-} sigset_t;
-#endif
-/* The timespec tag IRIX uses in this mode, as in <sys/stat.h>: IRIX's
- * <sys/types.h> includes this header, so <sys/timespec.h> cannot be. */
-#ifdef __cplusplus
-extern "C" {
-#endif
-#if _POSIX93 || _ABIAPI || _XOPEN5
-struct timespec;
-int pselect(int, fd_set *, fd_set *, fd_set *, const struct timespec *,
-            const sigset_t *);
-#else
-struct __timespec;
-int pselect(int, fd_set *, fd_set *, fd_set *, const struct __timespec *,
-            const sigset_t *);
-#endif
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* __CLANG_IRIX_SYS_SELECT_H */
