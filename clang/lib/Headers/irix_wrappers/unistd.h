@@ -274,7 +274,13 @@ int usleep(unsigned int);
 extern "C" {
 #endif
 int initgroups(const char *, gid_t);
+/* As IRIX's <unistd.h> has it in each mode: the BSD prototype under
+ * _BSD_COMPAT, which otherwise conflicted with this one. */
+#ifdef _BSD_COMPAT
+int setgroups(int, int *);
+#else
 int setgroups(int, const gid_t *);
+#endif
 #ifdef __cplusplus
 }
 #endif
