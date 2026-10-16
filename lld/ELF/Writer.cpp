@@ -258,6 +258,11 @@ void elf::addReservedSymbols(Ctx &ctx) {
   ctx.sym.etext2 = add("_etext", -1);
   ctx.sym.edata1 = add("edata", -1);
   ctx.sym.edata2 = add("_edata", -1);
+  if (ctx.arg.osabi == ELFOSABI_IRIX) {
+    ctx.sym.ftext = add("_ftext", -1);
+    ctx.sym.fdata = add("_fdata", -1);
+    ctx.sym.fbss = add("_fbss", -1);
+  }
 }
 
 static void demoteDefined(Defined &sym, DenseMap<SectionBase *, size_t> &map) {
@@ -911,6 +916,29 @@ template <class ELFT> void Writer<ELFT>::setReservedSymbolSections() {
       ctx.sym.end1->section = last->lastSec;
     if (ctx.sym.end2)
       ctx.sym.end2->section = last->lastSec;
+  }
+
+  // IRIX: _ftext is the start of the first executable section, _fdata of the
+  // first writable one with contents, _fbss of the first uninitialized one.
+  if (ctx.sym.ftext || ctx.sym.fdata || ctx.sym.fbss) {
+    OutputSection *ftext = nullptr, *fdata = nullptr, *fbss = nullptr;
+    for (OutputSection *os : ctx.outputSections) {
+      if (!(os->flags & SHF_ALLOC) || (os->flags & SHF_TLS))
+        continue;
+      if (!ftext && (os->flags & SHF_EXECINSTR))
+        ftext = os;
+      if (!fdata && (os->flags & SHF_WRITE) && os->type != SHT_NOBITS)
+        fdata = os;
+      if (!fbss && os->type == SHT_NOBITS)
+        fbss = os;
+    }
+    for (auto [sym, os] : {std::pair(ctx.sym.ftext, ftext),
+                           std::pair(ctx.sym.fdata, fdata),
+                           std::pair(ctx.sym.fbss, fbss)})
+      if (sym && os) {
+        sym->section = os;
+        sym->value = 0;
+      }
   }
 
   if (ctx.sym.bss) {

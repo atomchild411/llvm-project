@@ -643,6 +643,12 @@ struct Ctx : CommonLinkerContext {
     Defined *end1;
     Defined *end2;
 
+    // IRIX: _ftext, _fdata and _fbss, the starts of text, data and bss that
+    // its ld defines (Boehm GC finds its data roots from _fdata).
+    Defined *ftext;
+    Defined *fdata;
+    Defined *fbss;
+
     // The _GLOBAL_OFFSET_TABLE_ symbol is defined by target convention to
     // be at some offset from the base of the .got section, usually 0 or
     // the end of the .got.
