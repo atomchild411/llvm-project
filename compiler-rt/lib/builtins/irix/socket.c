@@ -23,6 +23,12 @@
 // sigtimedwait, so the program gets EPIPE and no signal; the mask is then
 // restored. Without it they are IRIX's own (sendmsg its X/Open one).
 //
+// socket, socketpair and accept4 with SOCK_NONBLOCK and SOCK_CLOEXEC, which
+// IRIX lacks: the wrapper defines them to the BSDs' values and binds the
+// three here. The descriptors are opened without them, then given
+// O_NONBLOCK and FD_CLOEXEC with fcntl (not atomic: a fork in another thread
+// just then can inherit one). Without them socket and socketpair are IRIX's.
+//
 // Its own file, so a program is only given it when it asks for it.
 //
 //===----------------------------------------------------------------------===//
@@ -30,7 +36,9 @@
 #if defined(__sgi)
 
 #include "irix_errno.h"
+#include <fcntl.h>
 #include <signal.h>
+#include <unistd.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <time.h>
@@ -134,6 +142,72 @@ ssize_t __irix_sendmsg(int s, const struct msghdr *msg, int flags) {
   ssize_t r = __xpg4_sendmsg(s, msg, flags & ~NOSIGNAL);
   pipe_guard_off(&g, r);
   return r;
+}
+
+#define TYPE_CLOEXEC 0x10000000
+#define TYPE_NONBLOCK 0x20000000
+#define TYPE_FLAGS (TYPE_CLOEXEC | TYPE_NONBLOCK)
+
+extern int __irix_libc_socket_fn(int, int, int) __asm__("socket");
+extern int __irix_libc_socketpair_fn(int, int, int, int *)
+    __asm__("socketpair");
+extern int __xpg4_accept(int, struct sockaddr *, size_t *);
+
+// Sets the flags on fd; on failure closes it and returns -1 (errno kept).
+static int type_flags(int fd, int flags) {
+  if ((flags & TYPE_CLOEXEC) && fcntl(fd, F_SETFD, FD_CLOEXEC) < 0)
+    goto fail;
+  if (flags & TYPE_NONBLOCK) {
+    int fl = fcntl(fd, F_GETFL);
+    if (fl < 0 || fcntl(fd, F_SETFL, fl | O_NONBLOCK) < 0)
+      goto fail;
+  }
+  return fd;
+fail: {
+  int saved = *__oserror();
+  close(fd);
+  __irix_seterrno(saved);
+  return -1;
+}
+}
+
+int __irix_socket(int domain, int type, int protocol) {
+  int s = __irix_libc_socket_fn(domain, type & ~TYPE_FLAGS, protocol);
+  if (s < 0 || !(type & TYPE_FLAGS))
+    return s;
+  return type_flags(s, type & TYPE_FLAGS);
+}
+
+int __irix_socketpair(int domain, int type, int protocol, int sv[2]) {
+  int r = __irix_libc_socketpair_fn(domain, type & ~TYPE_FLAGS, protocol, sv);
+  if (r < 0 || !(type & TYPE_FLAGS))
+    return r;
+  if (type_flags(sv[0], type & TYPE_FLAGS) < 0) {
+    int saved = *__oserror();
+    close(sv[1]);
+    __irix_seterrno(saved);
+    return -1;
+  }
+  if (type_flags(sv[1], type & TYPE_FLAGS) < 0) {
+    int saved = *__oserror();
+    close(sv[0]);
+    __irix_seterrno(saved);
+    return -1;
+  }
+  return 0;
+}
+
+// socklen_t is 32 bits, like size_t, on n32.
+int accept4(int s, struct sockaddr *__restrict addr,
+            socklen_t *__restrict len, int flags) {
+  if (flags & ~TYPE_FLAGS) {
+    __irix_seterrno(EINVAL);
+    return -1;
+  }
+  int fd = __xpg4_accept(s, addr, (size_t *)len);
+  if (fd < 0 || !flags)
+    return fd;
+  return type_flags(fd, flags);
 }
 
 #endif // defined(__sgi)
