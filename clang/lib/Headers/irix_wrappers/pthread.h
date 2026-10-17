@@ -39,6 +39,19 @@ int pthread_spin_unlock(pthread_spinlock_t *);
 }
 #endif
 
+/* Thread names, in Linux's (and glibc's) form, which IRIX's pthreads do not
+ * have: compiler-rt's irix/pthread_np.c checks the length (15 characters and
+ * the NUL, ERANGE beyond) and keeps no name, so pthread_getname_np gives an
+ * empty one. */
+#ifdef __cplusplus
+extern "C" {
+#endif
+int pthread_setname_np(pthread_t, const char *);
+int pthread_getname_np(pthread_t, char *, size_t);
+#ifdef __cplusplus
+}
+#endif
+
 /* In IRIX's libc, and declared by no IRIX header a program would look in
  * for it: declared here, with IRIX's own prototypes. */
 #ifdef __cplusplus

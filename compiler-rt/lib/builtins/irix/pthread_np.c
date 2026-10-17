@@ -13,6 +13,11 @@
 // pthread_cond_timedwait, so only a date change during the wait itself
 // lengthens or shortens it. clang's IRIX <pthread.h> declares it.
 //
+// pthread_setname_np and pthread_getname_np, Linux's, for code that names
+// its threads for debuggers (spice-server, dps8m): IRIX's pthreads keep no
+// names. Setting checks the length as Linux does (ERANGE past 15 characters)
+// and keeps nothing; getting gives an empty name.
+//
 // Its own file, so a program is only given it when it asks for it.
 //
 //===----------------------------------------------------------------------===//
@@ -21,6 +26,7 @@
 
 #include <errno.h>
 #include <pthread.h>
+#include <string.h>
 #include <time.h>
 
 #pragma weak pthread_cond_timedwait_relative_np
@@ -40,6 +46,19 @@ int pthread_cond_timedwait_relative_np(pthread_cond_t *cond,
     abs.tv_nsec -= 1000000000L;
   }
   return pthread_cond_timedwait(cond, mutex, &abs);
+}
+
+int pthread_setname_np(pthread_t thread, const char *name) {
+  (void)thread;
+  return strlen(name) > 15 ? ERANGE : 0;
+}
+
+int pthread_getname_np(pthread_t thread, char *name, size_t len) {
+  (void)thread;
+  if (len < 1)
+    return ERANGE;
+  name[0] = '\0';
+  return 0;
 }
 
 #endif // defined(__sgi)
