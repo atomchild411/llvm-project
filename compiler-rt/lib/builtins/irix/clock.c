@@ -17,7 +17,9 @@
 // 43 seconds on an Indigo2 R10000 -- so it cannot serve alone.
 //
 // CLOCK_PROCESS_CPUTIME_ID, which IRIX also lacks, is the user and system
-// time times() reports for the process, in the same steps.
+// time times() reports for the process, in the same steps; and so is
+// CLOCK_THREAD_CPUTIME_ID, since IRIX has no per-thread CPU clock (exact for
+// a single-threaded program, more than the thread's time otherwise).
 //
 // Its own file, so a program is only given these when it asks for them.
 //
@@ -38,9 +40,16 @@ extern int __irix_libc_clock_gettime(clockid_t, struct timespec *)
 extern int __irix_libc_clock_getres(clockid_t, struct timespec *)
     __asm__("clock_getres");
 
-#if !defined(__IRIX_CLOCK_MONOTONIC) || !defined(__IRIX_CLOCK_PROCESS_CPUTIME_ID)
+#if !defined(__IRIX_CLOCK_MONOTONIC) ||                                       \
+    !defined(__IRIX_CLOCK_PROCESS_CPUTIME_ID) ||                              \
+    !defined(__IRIX_CLOCK_THREAD_CPUTIME_ID)
 #error "clang's IRIX <time.h> wrapper defines the __IRIX_CLOCK_ ids"
 #endif
+
+static int cpu_clock(clockid_t id) {
+  return id == __IRIX_CLOCK_PROCESS_CPUTIME_ID ||
+         id == __IRIX_CLOCK_THREAD_CPUTIME_ID;
+}
 
 static long ticks_per_second(void) {
   static long hz;
@@ -53,7 +62,7 @@ static long ticks_per_second(void) {
 }
 
 int __irix_clock_gettime(clockid_t id, struct timespec *ts) {
-  if (id == __IRIX_CLOCK_MONOTONIC || id == __IRIX_CLOCK_PROCESS_CPUTIME_ID) {
+  if (id == __IRIX_CLOCK_MONOTONIC || cpu_clock(id)) {
     struct tms t;
     unsigned long ticks = (unsigned long)times(&t);
     long hz = ticks_per_second();
@@ -61,7 +70,7 @@ int __irix_clock_gettime(clockid_t id, struct timespec *ts) {
       __irix_seterrno(EFAULT);
       return -1;
     }
-    if (id == __IRIX_CLOCK_PROCESS_CPUTIME_ID)
+    if (cpu_clock(id))
       ticks = (unsigned long)t.tms_utime + (unsigned long)t.tms_stime;
     ts->tv_sec = (time_t)(ticks / (unsigned long)hz);
     ts->tv_nsec = (long)(ticks % (unsigned long)hz) * (1000000000L / hz);
@@ -71,7 +80,7 @@ int __irix_clock_gettime(clockid_t id, struct timespec *ts) {
 }
 
 int __irix_clock_getres(clockid_t id, struct timespec *ts) {
-  if (id == __IRIX_CLOCK_MONOTONIC || id == __IRIX_CLOCK_PROCESS_CPUTIME_ID) {
+  if (id == __IRIX_CLOCK_MONOTONIC || cpu_clock(id)) {
     if (ts) {
       ts->tv_sec = 0;
       ts->tv_nsec = 1000000000L / ticks_per_second();

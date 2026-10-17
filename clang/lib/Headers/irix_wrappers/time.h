@@ -33,8 +33,15 @@
 #define CLOCK_PROCESS_CPUTIME_ID 0x7f02
 #define __IRIX_CLOCK_PROCESS_CPUTIME_ID CLOCK_PROCESS_CPUTIME_ID
 #endif
+/* IRIX has no per-thread CPU clock: this one is the process's (exact for a
+ * single-threaded program, more than the thread's otherwise). */
+#ifndef CLOCK_THREAD_CPUTIME_ID
+#define CLOCK_THREAD_CPUTIME_ID 0x7f03
+#define __IRIX_CLOCK_THREAD_CPUTIME_ID CLOCK_THREAD_CPUTIME_ID
+#endif
 
-#if defined(__IRIX_CLOCK_MONOTONIC) || defined(__IRIX_CLOCK_PROCESS_CPUTIME_ID)
+#if defined(__IRIX_CLOCK_MONOTONIC) || defined(__IRIX_CLOCK_PROCESS_CPUTIME_ID) || \
+    defined(__IRIX_CLOCK_THREAD_CPUTIME_ID)
 struct timespec;
 #ifdef __cplusplus
 extern "C" {
