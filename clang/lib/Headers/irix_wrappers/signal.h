@@ -60,8 +60,11 @@ void (*bsd_signal(int, void (*)(int)))(int);
 #endif
 #endif
 
-/* sig_t: the BSD name for a signal handler's type, which glibc gives too. */
-#if !defined(__STRICT_ANSI__) && !defined(__CLANG_IRIX_SIG_T)
+/* sig_t: the BSD name for a signal handler's type, which glibc gives too
+ * (in strict C modes, with _BSD_SOURCE, _DEFAULT_SOURCE or _GNU_SOURCE). */
+#if (!defined(__STRICT_ANSI__) || defined(_BSD_SOURCE) ||                     \
+     defined(_DEFAULT_SOURCE) || defined(_GNU_SOURCE)) &&                      \
+    !defined(__CLANG_IRIX_SIG_T)
 #define __CLANG_IRIX_SIG_T
 typedef void (*sig_t)(int);
 #endif
@@ -76,6 +79,12 @@ typedef void (*sig_t)(int);
 #ifndef _NSIG
 #define _NSIG NSIG
 #endif
+#endif
+
+/* glibc's _GNU_SOURCE name for a handler's type (IRIX calls it SIG_PF; its
+ * own __sighandler_t is a structure, not this). */
+#if defined(_GNU_SOURCE)
+typedef void (*sighandler_t)(int);
 #endif
 
 #endif /* __CLANG_IRIX_SIGNAL_H */
