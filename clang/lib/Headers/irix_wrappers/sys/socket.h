@@ -44,10 +44,41 @@
 #define recvmsg __irix_bsd43_recvmsg
 #define getsockname __irix_libc_getsockname
 #define getpeername __irix_libc_getpeername
+/* IRIX's struct sockaddr (and sockaddr_new) wraps its fields in
+ * union { struct { ... } sa_generic; int sa_align; } sa_union and reaches
+ * them through macros: sa_family is sa_union.sa_generic.sa_family2, and so
+ * on. The macros take the names everywhere, so a parameter or variable
+ * called sa_family, sa_data or sa_len stops compiling (libssh, bind,
+ * toxcore). Make the union and the struct anonymous and give the members
+ * their own names: the same layout (the int keeps it 4-aligned), and
+ * s.sa_family is a plain member. IRIX's struct sockaddr_new, after its
+ * macros, would declare its members through them: leave it out (only
+ * kernel code uses its members; <net/if.h> and <net/route.h> keep pointers
+ * to it, which need no body), as IRIX does when _HAVE_SIN_LEN is set. */
+#ifndef _HAVE_SIN_LEN
+#define __IRIX_WRAPPER_HAVE_SIN_LEN
+#define _HAVE_SIN_LEN
+#endif
+#define sa_union
+#define sa_generic
+#define sa_family2 sa_family
+#define sa_data2 sa_data
+#define sa_len2 sa_len
 #include_next <sys/socket.h>
-/* IRIX defines sa_len as sa_union.sa_generic.sa_len2, a member it compiles
- * out (no _HAVE_SA_LEN: the kernel's sockaddr has no length byte). The macro
- * only takes the name: a variable called sa_len stops compiling (dbus). */
+#ifdef __IRIX_WRAPPER_HAVE_SIN_LEN
+#undef _HAVE_SIN_LEN
+#undef __IRIX_WRAPPER_HAVE_SIN_LEN
+#endif
+#undef sa_union
+#undef sa_generic
+#undef sa_family2
+#undef sa_data2
+#undef sa_len2
+#undef sa_family
+#undef sa_data
+/* sa_len as IRIX defines it names a member it compiles out (no
+ * _HAVE_SA_LEN: the kernel's sockaddr has no length byte); a variable
+ * called sa_len stopped compiling (dbus). */
 #undef sa_len
 #undef msghdr
 #undef sendmsg
