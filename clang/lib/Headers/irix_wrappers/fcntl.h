@@ -108,4 +108,18 @@ int posix_fallocate(int, off_t, off_t);
 #define O_ASYNC 0x1000
 #endif
 
+/* flock (4.3BSD's, in IRIX's libc) and its LOCK_ operations, which IRIX
+ * declares only in <sys/file.h>: the BSDs' and glibc's <fcntl.h> have them,
+ * and code written for those includes nothing else. IRIX's values. */
+#ifndef LOCK_SH
+#define LOCK_SH 1
+#define LOCK_EX 2
+#define LOCK_NB 4
+#define LOCK_UN 8
+#endif
+#ifdef __cplusplus
+extern "C"
+#endif
+int flock(int, int);
+
 #endif /* __CLANG_IRIX_FCNTL_H */
