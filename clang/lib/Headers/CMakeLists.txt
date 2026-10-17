@@ -477,6 +477,7 @@ set(irix_wrapper_sys_files
 # irix_wrappers/netinet/.
 set(irix_wrapper_arpa_files
   irix_wrappers/arpa/inet.h
+  irix_wrappers/arpa/nameser.h
 )
 set(irix_wrapper_net_files
   irix_wrappers/net/if.h
