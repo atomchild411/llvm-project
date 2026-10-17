@@ -99,6 +99,8 @@ size_t mbrlen(const char *, size_t, mbstate_t *);
 size_t wcrtomb(char *, wchar_t, mbstate_t *);
 size_t mbsrtowcs(wchar_t *, const char **, size_t, mbstate_t *);
 size_t wcsrtombs(char *, const wchar_t **, size_t, mbstate_t *);
+size_t mbsnrtowcs(wchar_t *, const char **, size_t, size_t, mbstate_t *);
+size_t wcsnrtombs(char *, const wchar_t **, size_t, size_t, mbstate_t *);
 float wcstof(const wchar_t *__restrict, wchar_t **__restrict);
 int vswprintf(wchar_t *__restrict, size_t, const wchar_t *__restrict,
               __builtin_va_list);

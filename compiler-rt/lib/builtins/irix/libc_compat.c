@@ -51,6 +51,8 @@
 #pragma weak wcrtomb
 #pragma weak mbsrtowcs
 #pragma weak wcsrtombs
+#pragma weak mbsnrtowcs
+#pragma weak wcsnrtombs
 #pragma weak wcstof
 #pragma weak vswprintf
 #pragma weak swprintf
@@ -192,6 +194,74 @@ size_t wcsrtombs(char *d, const wchar_t **src, size_t len, mbstate_t *ps) {
     }
     n += (size_t)r;
   }
+}
+
+/* POSIX 2008's: as mbsrtowcs and wcsrtombs, reading at most nms bytes or
+ * nwc wide characters of the source. A character cut off by nms ends the
+ * conversion there, as at the end of the input (these keep no state). */
+size_t mbsnrtowcs(wchar_t *d, const char **src, size_t nms, size_t len,
+                  mbstate_t *ps) {
+  const char *s = *src, *end = *src + nms;
+  size_t n = 0;
+  mbtowc(0, 0, 0); /* no shift state left from an earlier cut-off call */
+  while (d == 0 || n < len) {
+    wchar_t w;
+    size_t left = (size_t)(end - s);
+    int r;
+    if (left == 0)
+      break;
+    r = mbtowc(&w, s, left < (size_t)MB_CUR_MAX ? left : (size_t)MB_CUR_MAX);
+    if (r < 0) {
+      mbtowc(0, 0, 0);
+      if (left < (size_t)MB_CUR_MAX)
+        break;
+      if (d)
+        *src = s;
+      return (size_t)-1;
+    }
+    if (d)
+      d[n] = w;
+    if (r == 0) {
+      if (d)
+        *src = 0;
+      return n;
+    }
+    s += r;
+    ++n;
+  }
+  if (d)
+    *src = s;
+  return n;
+}
+size_t wcsnrtombs(char *d, const wchar_t **src, size_t nwc, size_t len,
+                  mbstate_t *ps) {
+  const wchar_t *s = *src, *end = *src + nwc;
+  size_t n = 0;
+  for (; s < end; ++s) {
+    char b[MB_LEN_MAX];
+    int r = wctomb(b, *s);
+    if (r < 0) {
+      if (d)
+        *src = s;
+      return (size_t)-1;
+    }
+    if (d) {
+      if (n + (size_t)r > len) {
+        *src = s;
+        return n;
+      }
+      memcpy(d + n, b, (size_t)r);
+    }
+    if (*s == L'\0') {
+      if (d)
+        *src = 0;
+      return n;
+    }
+    n += (size_t)r;
+  }
+  if (d)
+    *src = s;
+  return n;
 }
 
 float wcstof(const wchar_t *__restrict s, wchar_t **__restrict end) {
