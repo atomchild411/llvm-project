@@ -454,6 +454,7 @@ set(irix_wrapper_sys_files
   irix_wrappers/sys/bitypes.h
   irix_wrappers/sys/endian.h
   irix_wrappers/sys/kabi.h
+  irix_wrappers/sys/param.h
   irix_wrappers/sys/queue.h
   irix_wrappers/sys/random.h
   irix_wrappers/sys/un.h
