@@ -19,6 +19,12 @@
 #define LOG_AUTHPRIV LOG_AUTH
 #endif
 
+/* Their FTP daemon facility, which IRIX's syslogd does not know either:
+ * LOG_DAEMON, where IRIX's ftpd logs (nagios-nrpe, powerdns, wdm). */
+#ifndef LOG_FTP
+#define LOG_FTP LOG_DAEMON
+#endif
+
 /* POSIX's, in IRIX's libc, which its header declares only in SGI mode (and
  * some X/Open modes): declared here outside SGI mode, with IRIX's own
  * prototypes (found by compiling every POSIX header in six feature-macro
