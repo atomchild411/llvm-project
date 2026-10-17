@@ -65,6 +65,19 @@
 #undef __IRIX_GETOPT_INDIRECT_STDIO
 #endif
 
+/* fileno: IRIX's <stdio.h> makes it a function-like macro (FILE's _file),
+ * which breaks a declaration of it (flex lexers: rsyslog) and ::fileno in
+ * C++ (spdlog, raylib). Where it does, use libc's function instead,
+ * declared here since IRIX declares it only in some of those modes. */
+#ifdef fileno
+#undef fileno
+#ifdef __cplusplus
+extern "C" int fileno(FILE *);
+#else
+extern int fileno(FILE *);
+#endif
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
