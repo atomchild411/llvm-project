@@ -100,4 +100,21 @@ int settimeofday(struct timeval *, ...);
   } while (0)
 #endif
 
+/* The BSDs' and glibc's timeval <-> timespec conversions (libfprint,
+ * pdns-recursor), outside strict standard modes as there. */
+#if (_SGIAPI || defined(_BSD_COMPAT) || defined(_BSD_SOURCE) ||               \
+     defined(_DEFAULT_SOURCE) || defined(_GNU_SOURCE)) &&                     \
+    !defined(TIMEVAL_TO_TIMESPEC)
+#define TIMEVAL_TO_TIMESPEC(tv, ts)                                            \
+  do {                                                                         \
+    (ts)->tv_sec = (tv)->tv_sec;                                               \
+    (ts)->tv_nsec = (tv)->tv_usec * 1000;                                      \
+  } while (0)
+#define TIMESPEC_TO_TIMEVAL(tv, ts)                                            \
+  do {                                                                         \
+    (tv)->tv_sec = (ts)->tv_sec;                                               \
+    (tv)->tv_usec = (ts)->tv_nsec / 1000;                                      \
+  } while (0)
+#endif
+
 #endif /* __CLANG_IRIX_SYS_TIME_H */
