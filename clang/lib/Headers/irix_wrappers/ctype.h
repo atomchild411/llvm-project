@@ -11,12 +11,52 @@
  * which every 6.5 release exports: right whichever headers are present --
  * a 6.5.22 root builds for the 6.5.7 floor as well -- where a definition of
  * our own would clash with 6.5.22's declaration.
+ *
+ * IRIX's classification macros index the class table with their argument
+ * as given, so a plain char argument draws -Wchar-subscripts, an error
+ * under -Werror (redis, ...). glibc's macros index with (int)(c): do the
+ * same -- the same index, the same table, no warning.
  */
 
 #ifndef __CLANG_IRIX_CTYPE_H
 #define __CLANG_IRIX_CTYPE_H
 
 #include_next <ctype.h>
+
+#if !defined(_KERNEL) && !defined(_LINT) && defined(isalpha)
+#undef isalpha
+#define isalpha(c) ((__libc_attr._ctype_tbl->_class + 1)[(int)(c)] & _ISalpha)
+#undef isupper
+#define isupper(c) ((__libc_attr._ctype_tbl->_class + 1)[(int)(c)] & _ISupper)
+#undef islower
+#define islower(c) ((__libc_attr._ctype_tbl->_class + 1)[(int)(c)] & _ISlower)
+#undef isdigit
+#define isdigit(c) ((__libc_attr._ctype_tbl->_class + 1)[(int)(c)] & _ISdigit)
+#undef isxdigit
+#define isxdigit(c) ((__libc_attr._ctype_tbl->_class + 1)[(int)(c)] & _ISxdigit)
+#undef isalnum
+#define isalnum(c) ((__libc_attr._ctype_tbl->_class + 1)[(int)(c)] & _ISalnum)
+#undef isspace
+#define isspace(c) ((__libc_attr._ctype_tbl->_class + 1)[(int)(c)] & _ISspace)
+#undef __isblank
+#define __isblank(c) ((__libc_attr._ctype_tbl->_class + 1)[(int)(c)] & _ISblank)
+#undef ispunct
+#define ispunct(c) ((__libc_attr._ctype_tbl->_class + 1)[(int)(c)] & _ISpunct)
+#undef isprint
+#define isprint(c) ((__libc_attr._ctype_tbl->_class + 1)[(int)(c)] & _ISprint)
+#undef isgraph
+#define isgraph(c) ((__libc_attr._ctype_tbl->_class + 1)[(int)(c)] & _ISgraph)
+#undef iscntrl
+#define iscntrl(c) ((__libc_attr._ctype_tbl->_class + 1)[(int)(c)] & _IScntrl)
+#if defined(_toupper)
+#undef _toupper
+#define _toupper(c) ((__libc_attr._ctype_tbl->_upper + 1)[(int)(c)])
+#endif
+#if defined(_tolower)
+#undef _tolower
+#define _tolower(c) ((__libc_attr._ctype_tbl->_lower + 1)[(int)(c)])
+#endif
+#endif
 
 #if !defined(isblank)
 #ifdef __cplusplus
