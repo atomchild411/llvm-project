@@ -18,7 +18,8 @@
  * And O_DIRECTORY: what was opened must be a directory, or the open fails
  * with ENOTDIR (checked with fstat on the descriptor, so exactly).
  *
- * And the AT_ constants and openat (below).
+ * And the AT_ constants and openat (below), and posix_fallocate, which
+ * IRIX lacks too (irix/fallocate.c).
  */
 
 #ifndef __CLANG_IRIX_FCNTL_H
@@ -80,6 +81,14 @@ int fcntl(int, int, ...) __asm__("__irix_fcntl");
 extern "C" {
 #endif
 int openat(int, const char *, int, ...);
+#ifdef __cplusplus
+}
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+int posix_fallocate(int, off_t, off_t);
 #ifdef __cplusplus
 }
 #endif

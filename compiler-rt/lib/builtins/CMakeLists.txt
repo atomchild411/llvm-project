@@ -280,6 +280,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "IRIX")
     irix/pty.c
     irix/locale_l.c
     irix/fcntl.c
+    irix/fallocate.c
     irix/grouplist.c
     irix/dlsym.c
     irix/fts.c
