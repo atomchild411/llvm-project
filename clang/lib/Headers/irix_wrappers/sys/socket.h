@@ -41,6 +41,8 @@
 
 #define msghdr __irix_bsd43_msghdr
 #define sendmsg __irix_bsd43_sendmsg
+#define send __irix_libc_send
+#define sendto __irix_libc_sendto
 #define recvmsg __irix_bsd43_recvmsg
 #define getsockname __irix_libc_getsockname
 #define getpeername __irix_libc_getpeername
@@ -82,6 +84,8 @@
 #undef sa_len
 #undef msghdr
 #undef sendmsg
+#undef send
+#undef sendto
 #undef recvmsg
 #undef getsockname
 #undef getpeername
@@ -113,8 +117,26 @@ struct msghdr {
 #ifdef __cplusplus
 extern "C" {
 #endif
-ssize_t sendmsg(int, const struct msghdr *, int) __asm__("__xpg4_sendmsg");
+ssize_t sendmsg(int, const struct msghdr *, int) __asm__("__irix_sendmsg");
 ssize_t recvmsg(int, struct msghdr *, int) __asm__("__irix_recvmsg");
+#ifdef __cplusplus
+}
+#endif
+
+/* Linux's and the BSDs' MSG_NOSIGNAL, which IRIX lacks: a flag bit IRIX
+ * does not use (its are 0x1 to 0x80 and the top two bits), and send, sendto
+ * and sendmsg (above) bound to compiler-rt's irix/socket.c, which holds
+ * SIGPIPE off for a call with it: the call fails with EPIPE and no signal
+ * is delivered. Without the flag they are IRIX's own. */
+#ifndef MSG_NOSIGNAL
+#define MSG_NOSIGNAL 0x20000
+#endif
+#ifdef __cplusplus
+extern "C" {
+#endif
+ssize_t send(int, const void *, size_t, int) __asm__("__irix_send");
+ssize_t sendto(int, const void *, size_t, int, const struct sockaddr *,
+               socklen_t) __asm__("__irix_sendto");
 #ifdef __cplusplus
 }
 #endif
