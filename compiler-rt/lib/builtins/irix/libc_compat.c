@@ -8,8 +8,8 @@
 //
 // IRIX before 6.5.22 has only C89's wide-character functions. These are the
 // C95 and C99 ones C and C++ libraries use, declared by clang's IRIX
-// <wchar.h> wrapper; POSIX 2008's strnlen, wcsnlen, wcsdup, wcscasecmp and
-// wcsncasecmp, which no IRIX has; and C99's strtoimax, strtoumax, imaxabs and imaxdiv,
+// <wchar.h> wrapper; POSIX 2008's strnlen, wcsnlen, wcsdup, wcscasecmp,
+// wcsncasecmp, wcpcpy and wcpncpy, which no IRIX has; and C99's strtoimax, strtoumax, imaxabs and imaxdiv,
 // which IRIX's libc lacks before 6.5.22 (imaxabs and imaxdiv in every
 // release) and clang's IRIX <inttypes.h> wrapper declares. They live here,
 // in the builtins every IRIX link takes, so that a program built for 6.5.7
@@ -65,6 +65,8 @@
 #pragma weak wcsnlen
 #pragma weak wcscasecmp
 #pragma weak wcsncasecmp
+#pragma weak wcpcpy
+#pragma weak wcpncpy
 #pragma weak strnlen
 #pragma weak strtoimax
 #pragma weak strtoumax
@@ -392,6 +394,22 @@ int wcsncasecmp(const wchar_t *a, const wchar_t *b, size_t n) {
       return 0;
   }
   return 0;
+}
+
+wchar_t *wcpcpy(wchar_t *__restrict d, const wchar_t *__restrict s) {
+  while ((*d = *s++) != 0)
+    ++d;
+  return d;
+}
+
+wchar_t *wcpncpy(wchar_t *__restrict d, const wchar_t *__restrict s,
+                 size_t n) {
+  size_t len = wcsnlen(s, n), i;
+  for (i = 0; i < len; ++i)
+    d[i] = s[i];
+  for (; i < n; ++i)
+    d[i] = 0;
+  return d + len;
 }
 
 /* IRIX streams have no orientation: report none. */
