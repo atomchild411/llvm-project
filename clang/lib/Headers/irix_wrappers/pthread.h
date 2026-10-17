@@ -52,6 +52,14 @@ int pthread_getname_np(pthread_t, char *, size_t);
 }
 #endif
 
+/* pthread_exit does not return (POSIX), which IRIX's declaration does not
+ * say: a thread function that ends with it then "does not return a value"
+ * (libssh, where that is an error). */
+#ifdef __cplusplus
+extern "C"
+#endif
+void pthread_exit(void *) __attribute__((__noreturn__));
+
 /* In IRIX's libc, and declared by no IRIX header a program would look in
  * for it: declared here, with IRIX's own prototypes. */
 #ifdef __cplusplus
