@@ -463,6 +463,7 @@ set(irix_wrapper_sys_files
   irix_wrappers/sys/select.h
   irix_wrappers/sys/socket.h
   irix_wrappers/sys/stat.h
+  irix_wrappers/sys/stream.h
   irix_wrappers/sys/sysinfo.h
   irix_wrappers/sys/timespec.h
   irix_wrappers/sys/types.h
