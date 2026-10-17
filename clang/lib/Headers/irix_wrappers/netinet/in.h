@@ -151,6 +151,10 @@ struct ipv6_mreq {
 #define IPV6_RECVPKTINFO 43
 #define IPV6_PKTINFO 44
 #endif
+/* And the hop limit's (RFC 3542; avahi). */
+#ifndef IPV6_HOPLIMIT
+#define IPV6_HOPLIMIT 48
+#endif
 struct in6_pktinfo {
   struct in6_addr ipi6_addr;
   int ipi6_ifindex;
