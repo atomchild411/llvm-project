@@ -9,7 +9,9 @@
 // recvmsg for the POSIX struct msghdr that clang's IRIX <sys/socket.h>
 // declares (IRIX's X/Open one): IRIX's __xpg4_recvmsg, except that the
 // kernel returns a bit in msg_flags, 0x40000000, that no MSG_ flag names;
-// it is cleared, so msg_flags holds only the flags POSIX defines.
+// it is cleared, so msg_flags holds only the flags POSIX defines. With
+// Linux's MSG_CMSG_CLOEXEC (0x40000 in the wrapper), the descriptors that
+// came with SCM_RIGHTS are made close-on-exec after the call.
 //
 // getsockname and getpeername: IRIX's, except that for an unnamed AF_UNIX
 // socket (a socketpair's) IRIX returns a length of 0 and no family; report
@@ -45,10 +47,42 @@
 
 extern ssize_t __xpg4_recvmsg(int, struct msghdr *, int);
 
+#define CMSG_CLOEXEC 0x40000
+
+// Every descriptor in the SCM_RIGHTS messages of msg made close-on-exec.
+// The kernel packs the messages with no padding past 4-byte alignment.
+static void rights_cloexec(struct msghdr *msg) {
+  char *p = (char *)msg->msg_control;
+  size_t left = msg->msg_controllen;
+  while (p && left >= sizeof(struct cmsghdr)) {
+    struct cmsghdr *c = (struct cmsghdr *)p;
+    size_t len = c->cmsg_len, step;
+    if (len < sizeof(struct cmsghdr) || len > left)
+      break;
+    if (c->cmsg_level == SOL_SOCKET && c->cmsg_type == SCM_RIGHTS) {
+      int *fds = (int *)(c + 1);
+      size_t i, n = (len - sizeof(struct cmsghdr)) / sizeof(int);
+      for (i = 0; i < n; i++)
+        fcntl(fds[i], F_SETFD, FD_CLOEXEC);
+    }
+    step = (len + 3) & ~(size_t)3;
+    if (step >= left)
+      break;
+    p += step;
+    left -= step;
+  }
+}
+
 ssize_t __irix_recvmsg(int s, struct msghdr *msg, int flags) {
-  ssize_t n = __xpg4_recvmsg(s, msg, flags);
-  if (n >= 0)
+  ssize_t n = __xpg4_recvmsg(s, msg, flags & ~CMSG_CLOEXEC);
+  if (n >= 0) {
     msg->msg_flags &= ~0x40000000;
+    if (flags & CMSG_CLOEXEC) {
+      int saved = *__oserror();
+      rights_cloexec(msg);
+      __irix_seterrno(saved);
+    }
+  }
   return n;
 }
 

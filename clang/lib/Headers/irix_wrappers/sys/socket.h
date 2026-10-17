@@ -137,6 +137,12 @@ ssize_t recvmsg(int, struct msghdr *, int) __asm__("__irix_recvmsg");
 #ifndef MSG_NOSIGNAL
 #define MSG_NOSIGNAL 0x20000
 #endif
+/* And Linux's MSG_CMSG_CLOEXEC for recvmsg: the descriptors received with
+ * SCM_RIGHTS come back close-on-exec (set with fcntl after the call, so not
+ * atomic against a fork in another thread). */
+#ifndef MSG_CMSG_CLOEXEC
+#define MSG_CMSG_CLOEXEC 0x40000
+#endif
 #ifdef __cplusplus
 extern "C" {
 #endif
