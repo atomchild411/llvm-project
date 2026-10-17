@@ -22,7 +22,9 @@
 
 #include <ctype.h>
 #include <locale.h>
+#include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <wchar.h>
 
 #pragma weak isalnum_l
@@ -57,6 +59,7 @@
 #pragma weak strxfrm_l
 #pragma weak wcscoll_l
 #pragma weak wcsxfrm_l
+#pragma weak strftime_l
 
 // The C locale's classes, for any value: EOF, WEOF and everything outside
 // ASCII are in none of them.
@@ -172,6 +175,92 @@ size_t wcsxfrm_l(wchar_t *restrict dst, const wchar_t *restrict src, size_t n,
   if (len < n)
     wmemcpy(dst, src, len + 1);
   return len;
+}
+
+// strftime in the C locale: the conversions that depend on the locale (the
+// day and month names, AM/PM, and %c, %x, %X and %r) are rewritten to the C
+// locale's text, and the E and O modifiers dropped (the C locale has no
+// alternatives), before IRIX's strftime does the rest.
+static const char *const c_wday[7] = {"Sunday",   "Monday", "Tuesday",
+                                      "Wednesday", "Thursday", "Friday",
+                                      "Saturday"};
+static const char *const c_month[12] = {
+    "January", "February", "March",     "April",   "May",      "June",
+    "July",    "August",   "September", "October", "November", "December"};
+
+static char *c_put(char *o, const char *str, size_t n) {
+  size_t len = strlen(str);
+  if (n > len)
+    n = len;
+  memcpy(o, str, n);
+  return o + n;
+}
+
+size_t strftime_l(char *restrict s, size_t max, const char *restrict fmt,
+                  const struct tm *restrict tm, locale_t l) {
+  if (GLOBAL(l))
+    return strftime(s, max, fmt, tm);
+  // A conversion of two or three characters becomes at most 22 ("%c").
+  char *f = malloc(strlen(fmt) * 11 + 1);
+  if (!f)
+    return 0;
+  const char *wday =
+      tm->tm_wday >= 0 && tm->tm_wday < 7 ? c_wday[tm->tm_wday] : "?";
+  const char *mon =
+      tm->tm_mon >= 0 && tm->tm_mon < 12 ? c_month[tm->tm_mon] : "?";
+  const char *ampm = tm->tm_hour >= 12 ? "PM" : "AM";
+  char *o = f;
+  for (const char *p = fmt; *p;) {
+    if (*p != '%' || !p[1]) {
+      *o++ = *p++;
+      continue;
+    }
+    const char *q = p + 1;
+    if ((*q == 'E' || *q == 'O') && q[1])
+      q++;
+    switch (*q) {
+    case 'a':
+      o = c_put(o, wday, 3);
+      break;
+    case 'A':
+      o = c_put(o, wday, 9);
+      break;
+    case 'b':
+    case 'h':
+      o = c_put(o, mon, 3);
+      break;
+    case 'B':
+      o = c_put(o, mon, 9);
+      break;
+    case 'p':
+      o = c_put(o, ampm, 2);
+      break;
+    case 'c':
+      o = c_put(o, wday, 3);
+      *o++ = ' ';
+      o = c_put(o, mon, 3);
+      o = c_put(o, " %e %H:%M:%S %Y", 15);
+      break;
+    case 'x':
+      o = c_put(o, "%m/%d/%y", 8);
+      break;
+    case 'X':
+      o = c_put(o, "%H:%M:%S", 8);
+      break;
+    case 'r':
+      o = c_put(o, "%I:%M:%S ", 9);
+      o = c_put(o, ampm, 2);
+      break;
+    default:
+      *o++ = '%';
+      *o++ = *q;
+    }
+    p = q + 1;
+  }
+  *o = '\0';
+  size_t n = strftime(s, max, f, tm);
+  free(f);
+  return n;
 }
 
 #endif // __sgi

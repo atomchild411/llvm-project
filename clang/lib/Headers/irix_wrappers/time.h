@@ -71,4 +71,18 @@ char *strptime(const char *, const char *, struct tm *);
 #endif
 #endif
 
+/* POSIX 2008's strftime_l (irix/locale_l.c): a locale_t is
+ * LC_GLOBAL_LOCALE, IRIX's strftime, or the C locale (the only one newlocale
+ * makes). */
+#include <__irix_locale_t.h>
+struct tm;
+#ifdef __cplusplus
+extern "C" {
+#endif
+size_t strftime_l(char *__restrict, size_t, const char *__restrict,
+                  const struct tm *__restrict, locale_t);
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* __CLANG_IRIX_TIME_H */
