@@ -175,6 +175,15 @@ int putenv(char *);
 }
 #endif
 
+/* getloadavg (the BSDs', glibc's): in compiler-rt (irix/loadavg.c). */
+#ifdef __cplusplus
+extern "C" {
+#endif
+int getloadavg(double[], int);
+#ifdef __cplusplus
+}
+#endif
+
 /* _Exit (C99): in clang's IRIX runtime (compiler-rt). */
 #ifdef __cplusplus
 extern "C" {

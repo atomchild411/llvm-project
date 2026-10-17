@@ -399,6 +399,7 @@ set(irix_wrapper_files
   irix_wrappers/audio.h
   irix_wrappers/dlfcn.h
   irix_wrappers/errno.h
+  irix_wrappers/fnmatch.h
   irix_wrappers/fts.h
   irix_wrappers/ftw.h
   irix_wrappers/limits.h
