@@ -51,7 +51,11 @@ public:
   bool isPIEDefault(const llvm::opt::ArgList &Args) const override {
     return false;
   }
-  bool isPICDefaultForced() const override { return false; }
+  // IRIX programs and libraries are all PIC (abicalls): rld has no copy
+  // relocations or PLT for non-PIC calls, so -fno-pic or -fno-PIE code (GCC's
+  // build machinery adds -fno-PIE when it works) cannot be linked into one.
+  // The PIC options are ignored, as on AIX.
+  bool isPICDefaultForced() const override { return true; }
   // IRIX's dbx reads DWARF 2; tuning for dbx would drop the pubnames it
   // wants, so tune for gdb.
   llvm::DebuggerKind getDefaultDebuggerTuning() const override {
