@@ -90,7 +90,14 @@ int pselect(int, fd_set *, fd_set *, fd_set *, const struct __timespec *,
 }
 #endif
 
+/* Not from inside IRIX's <sys/time.h> (it includes this header before it
+ * declares gettimeofday): there it is a no-op for IRIX's header and this
+ * wrapper's, but it would read a replacement one (gnulib's) right then,
+ * whose gettimeofday macro then renames IRIX's declaration to a conflicting
+ * rpl_gettimeofday (amanda, gcal). */
+#ifndef _SYS_TIME_H
 #include <sys/time.h>
+#endif
 
 /* IRIX gives struct timeval and select() only in X/Open, SGI and BSD modes.
  * POSIX.1-2001 has both in <sys/select.h> without X/Open, so a program that
