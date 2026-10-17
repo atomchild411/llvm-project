@@ -138,6 +138,7 @@ extern "C" {
 size_t wcsnlen(const wchar_t *, size_t);
 wchar_t *wcsdup(const wchar_t *);
 int wcscasecmp(const wchar_t *, const wchar_t *);
+int wcsncasecmp(const wchar_t *, const wchar_t *, size_t);
 #ifdef __cplusplus
 }
 #endif
