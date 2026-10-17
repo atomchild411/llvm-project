@@ -265,27 +265,9 @@ size_t strftime_l(char *restrict s, size_t max, const char *restrict fmt,
   return n;
 }
 
-// nl_langinfo in the C locale: IRIX's own answer when the category the item
-// belongs to is the C locale anyway, otherwise POSIX's C locale values.
-static int c_langinfo_category(nl_item item) {
-  switch (item) {
-  case RADIXCHAR:
-  case THOUSEP:
-    return LC_NUMERIC;
-  case YESSTR:
-  case NOSTR:
-  case YESEXPR:
-  case NOEXPR:
-    return LC_MESSAGES;
-  case CRNCYSTR:
-    return LC_MONETARY;
-  case CODESET:
-    return LC_CTYPE;
-  default:
-    return LC_TIME;
-  }
-}
-
+// nl_langinfo in the C locale: POSIX's C locale values (glibc's). Not IRIX's
+// own nl_langinfo, even when the program's locale is "C": IRIX's C locale
+// has no day and month names there (it answers "C" for them).
 static const char *const c_abday[7] = {"Sun", "Mon", "Tue", "Wed",
                                        "Thu", "Fri", "Sat"};
 static const char *const c_abmon[12] = {"Jan", "Feb", "Mar", "Apr",
@@ -331,9 +313,6 @@ static const char *c_langinfo(nl_item item) {
 
 char *nl_langinfo_l(nl_item item, locale_t l) {
   if (GLOBAL(l))
-    return nl_langinfo(item);
-  const char *cur = setlocale(c_langinfo_category(item), NULL);
-  if (cur && (!strcmp(cur, "C") || !strcmp(cur, "POSIX")))
     return nl_langinfo(item);
   return (char *)c_langinfo(item);
 }
