@@ -423,6 +423,7 @@ set(irix_wrapper_files
   irix_wrappers/getopt.h
   irix_wrappers/ifaddrs.h
   irix_wrappers/inttypes.h
+  irix_wrappers/langinfo.h
   irix_wrappers/locale.h
   irix_wrappers/math.h
   irix_wrappers/netdb.h
