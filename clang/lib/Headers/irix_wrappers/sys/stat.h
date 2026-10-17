@@ -48,6 +48,11 @@ int lchmod(const char *, mode_t);
 /* POSIX 2008's (compiler-rt's irix/atfile.c; AT_ constants in <fcntl.h>).
  * No futimens: IRIX cannot set a descriptor's times. */
 int fstatat(int, const char *, struct stat *, int);
+#if _LFAPI
+/* Its large-file form, beside IRIX's stat64 (glibc has it). */
+struct stat64;
+int fstatat64(int, const char *, struct stat64 *, int);
+#endif
 int fchmodat(int, const char *, mode_t, int);
 int mkdirat(int, const char *, mode_t);
 int mknodat(int, const char *, mode_t, dev_t);

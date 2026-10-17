@@ -16,7 +16,8 @@
  * that is a symbolic link (ELOOP, as POSIX says), checking it with lstat
  * just before opening -- not atomic against the link changing in between.
  * And O_DIRECTORY: what was opened must be a directory, or the open fails
- * with ENOTDIR (checked with fstat on the descriptor, so exactly).
+ * with ENOTDIR (checked with fstat on the descriptor, so exactly). IRIX's
+ * open64 (large files, where IRIX declares it) is routed the same way.
  *
  * And the AT_ constants and openat (below), and posix_fallocate, which
  * IRIX lacks too (irix/fallocate.c).
@@ -43,6 +44,9 @@
 extern "C" {
 #endif
 int open(const char *, int, ...) __asm__("__irix_open");
+#if _LFAPI
+int open64(const char *, int, ...) __asm__("__irix_open64");
+#endif
 #ifdef __cplusplus
 }
 #endif
@@ -81,6 +85,11 @@ int fcntl(int, int, ...) __asm__("__irix_fcntl");
 extern "C" {
 #endif
 int openat(int, const char *, int, ...);
+/* And its large-file form, beside IRIX's open64 (glibc has it; Guile
+ * uses it where there is a stat64). */
+#if _LFAPI
+int openat64(int, const char *, int, ...);
+#endif
 #ifdef __cplusplus
 }
 #endif

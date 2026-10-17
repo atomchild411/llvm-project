@@ -123,6 +123,26 @@ int fstatat(int fd, const char *path, struct stat *st, int flag) {
   return flag & AT_SYMLINK_NOFOLLOW ? lstat(at_p_, st) : stat(at_p_, st);
 }
 
+// The large-file forms, glibc's, on IRIX's open64 and stat64.
+#pragma weak openat64
+int openat64(int fd, const char *path, int flags, ...) {
+  mode_t mode = 0;
+  if (flags & O_CREAT) {
+    va_list ap;
+    va_start(ap, flags);
+    mode = (mode_t)va_arg(ap, int);
+    va_end(ap);
+  }
+  AT(fd, path);
+  return open64(at_p_, flags, mode);
+}
+
+#pragma weak fstatat64
+int fstatat64(int fd, const char *path, struct stat64 *st, int flag) {
+  AT(fd, path);
+  return flag & AT_SYMLINK_NOFOLLOW ? lstat64(at_p_, st) : stat64(at_p_, st);
+}
+
 #pragma weak fchmodat
 int fchmodat(int fd, const char *path, mode_t mode, int flag) {
   AT(fd, path);
