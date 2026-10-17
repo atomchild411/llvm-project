@@ -19,6 +19,16 @@
 
 #include_next <sys/mman.h>
 
+/* SVR4's memcntl flags SHARED and PRIVATE, which IRIX defines in SGI mode
+ * for a memcntl it does not implement: as bare macro names they broke
+ * programs' own SHARED and PRIVATE (an enum in bitcoin). */
+#if defined(SHARED) && SHARED == 0x10
+#undef SHARED
+#endif
+#if defined(PRIVATE) && PRIVATE == 0x20
+#undef PRIVATE
+#endif
+
 /* Code that defines MAP_ANONYMOUS as MAP_ANON (or the reverse) before
  * including this header gets the same bit. */
 #ifndef __IRIX_MAP_ANON
