@@ -100,4 +100,13 @@ char *hstrerror(int);
 #endif
 #endif
 
+/* BIND's gethostbyname2, which IRIX lacks: compiler-rt's irix/netdb.c. */
+#ifdef __cplusplus
+extern "C" {
+#endif
+struct hostent *gethostbyname2(const char *, int);
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* __CLANG_IRIX_NETDB_H */
