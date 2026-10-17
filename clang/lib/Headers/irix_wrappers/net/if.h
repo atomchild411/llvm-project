@@ -13,6 +13,11 @@
  * IRIX's header also uses the BSD types u_char, u_short, ... which
  * <sys/types.h> gives only outside POSIX and X/Open modes: bring them in
  * first (<sys/bsd_types.h> holds just those).
+ *
+ * It also brings in <sys/sema.h>, whose kernel "struct mutex" is a global
+ * name in C++: with "using namespace std", a plain "mutex" then means
+ * either it or std::mutex (kea).  C++ sees it under another tag; its
+ * mutex_t typedef is unchanged.
  */
 
 #ifndef __CLANG_IRIX_NET_IF_H
@@ -20,7 +25,15 @@
 
 #include <sys/types.h>
 #include <sys/bsd_types.h>
+#ifdef __cplusplus
+#pragma push_macro("mutex")
+#undef mutex
+#define mutex __irix_sema_mutex
+#endif
 #include_next <net/if.h>
+#ifdef __cplusplus
+#pragma pop_macro("mutex")
+#endif
 
 /* The functions unconditionally: IRIX declares them only in its INET6
  * (IPv6 kit) builds, and IF_NAMESIZE is no sign of them -- 6.5.22 defines
