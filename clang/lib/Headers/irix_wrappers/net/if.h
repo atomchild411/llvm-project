@@ -48,8 +48,10 @@ extern "C" {
 #endif
 unsigned int if_nametoindex(const char *);
 char *if_indextoname(unsigned int, char *);
-/* IRIX's struct for it is also INET6's only. */
-#ifndef INET6
+/* IRIX's struct for it: 6.5.7 has it in INET6 builds only; 6.5.22's
+ * header (the one with IPv6 ioctls: ifc_req6) in its default modes
+ * (_NO_XOPEN4), where it declares the functions too. */
+#if !defined(INET6) && !(defined(ifc_req6) && _NO_XOPEN4)
 struct if_nameindex {
   unsigned int if_index;
   char *if_name;
