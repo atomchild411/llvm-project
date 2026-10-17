@@ -53,9 +53,15 @@
 #endif
 
 /* IOV_MAX: IRIX answers it only through sysconf(_SC_IOV_MAX). Code that
- * wants a constant gets the guaranteed minimum, _XOPEN_IOV_MAX. */
-#if !defined(IOV_MAX) && defined(_XOPEN_IOV_MAX)
+ * wants a constant gets the guaranteed minimum, _XOPEN_IOV_MAX -- which IRIX
+ * gives only in X/Open UX and XPG5 modes, not plain XPG4 (_XOPEN_SOURCE
+ * without a value: redis), where glibc has IOV_MAX too: its value there. */
+#if !defined(IOV_MAX)
+#if defined(_XOPEN_IOV_MAX)
 #define IOV_MAX _XOPEN_IOV_MAX
+#elif defined(_XOPEN_SOURCE)
+#define IOV_MAX 16
+#endif
 #endif
 
 /* POSIX's: a login name's length with its null, which IRIX gives without
