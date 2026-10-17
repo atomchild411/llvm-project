@@ -58,8 +58,8 @@ char *strdup(const char *);
 #include <strings.h>
 #endif
 
-/* strlcpy, strlcat, memrchr and strchrnul: in clang's IRIX runtime
- * (compiler-rt). */
+/* strlcpy, strlcat, memrchr, strchrnul, ffsl and ffsll: in clang's IRIX
+ * runtime (compiler-rt). */
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -67,6 +67,8 @@ size_t strlcpy(char *__restrict, const char *__restrict, size_t);
 size_t strlcat(char *__restrict, const char *__restrict, size_t);
 void *memrchr(const void *, int, size_t);
 char *strchrnul(const char *, int);
+int ffsl(long);
+int ffsll(long long);
 #ifdef __cplusplus
 }
 #endif

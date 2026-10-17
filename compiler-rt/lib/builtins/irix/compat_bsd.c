@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// cfmakeraw (<termios.h>), lchmod (<sys/stat.h>), get_nprocs and
+// cfmakeraw and cfsetspeed (<termios.h>), lchmod (<sys/stat.h>), get_nprocs and
 // get_nprocs_conf (<sys/sysinfo.h>), declared by clang's IRIX wrappers.
 // Weak, so a program that brings its own copy keeps it.
 //
@@ -22,6 +22,7 @@
 #include <unistd.h>
 
 #pragma weak cfmakeraw
+#pragma weak cfsetspeed
 #pragma weak lchmod
 #pragma weak get_nprocs
 #pragma weak get_nprocs_conf
@@ -36,6 +37,13 @@ void cfmakeraw(struct termios *t) {
   t->c_cflag |= CS8;
   t->c_cc[VMIN] = 1;
   t->c_cc[VTIME] = 0;
+}
+
+// The BSDs' and glibc's: both speeds at once.
+int cfsetspeed(struct termios *t, speed_t speed) {
+  if (cfsetispeed(t, speed) == -1)
+    return -1;
+  return cfsetospeed(t, speed);
 }
 
 // IRIX cannot change a symbolic link's mode; glibc's lchmod fails with

@@ -67,6 +67,10 @@
 #pragma weak strnlen
 #pragma weak strtoimax
 #pragma weak strtoumax
+#pragma weak wcstoimax
+#pragma weak wcstoumax
+#pragma weak ffsl
+#pragma weak ffsll
 #pragma weak imaxabs
 #pragma weak imaxdiv
 
@@ -398,6 +402,48 @@ uintmax_t strtoumax(const char *__restrict s, char **__restrict end,
                     int base) {
   return strtoull(s, end, base);
 }
+
+// wcstoimax and wcstoumax, which 6.5.22's libc has and earlier ones lack:
+// digits, signs and the 0x prefix are ASCII in every IRIX locale, so the
+// run of ASCII characters after the white space is converted as a narrow
+// string, and the end pointer mapped back.
+static size_t wide_number(const wchar_t *s, char *buf, size_t n,
+                          size_t *skip) {
+  size_t i = 0, j = 0;
+  while (iswspace(s[i]))
+    i++;
+  *skip = i;
+  while (s[i] && s[i] < 0x80 && j + 1 < n)
+    buf[j++] = (char)s[i++];
+  buf[j] = 0;
+  return j;
+}
+
+intmax_t wcstoimax(const wchar_t *__restrict s, wchar_t **__restrict end,
+                   int base) {
+  char buf[128], *e;
+  size_t skip;
+  wide_number(s, buf, sizeof buf, &skip);
+  intmax_t v = strtoll(buf, &e, base);
+  if (end)
+    *end = (wchar_t *)(e == buf ? s : s + skip + (e - buf));
+  return v;
+}
+
+uintmax_t wcstoumax(const wchar_t *__restrict s, wchar_t **__restrict end,
+                    int base) {
+  char buf[128], *e;
+  size_t skip;
+  wide_number(s, buf, sizeof buf, &skip);
+  uintmax_t v = strtoull(buf, &e, base);
+  if (end)
+    *end = (wchar_t *)(e == buf ? s : s + skip + (e - buf));
+  return v;
+}
+
+// The BSDs' and glibc's ffs for long and long long.
+int ffsl(long i) { return __builtin_ffsl(i); }
+int ffsll(long long i) { return __builtin_ffsll(i); }
 
 intmax_t imaxabs(intmax_t j) { return j < 0 ? -j : j; }
 

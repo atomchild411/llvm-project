@@ -26,8 +26,8 @@
  * C99 mode, and its libc defines strtoimax, strtoumax, wcstoimax and
  * wcstoumax. IRIX's declarations have no extern "C", so in C++ they would
  * give the functions C++ linkage: all six are renamed out of the way while
- * its header is read and declared again here, wcstoimax and wcstoumax only
- * when the header is 6.5.22's (the one that defines PRId8).
+ * its header is read and declared again here. Before 6.5.22 compiler-rt's
+ * builtins define wcstoimax and wcstoumax too (yash).
  */
 
 #ifndef __CLANG_IRIX_INTTYPES_H
@@ -108,10 +108,18 @@ typedef struct {
 } imaxdiv_t;
 #endif
 imaxdiv_t imaxdiv(intmax_t, intmax_t);
-#ifdef PRId8
-intmax_t wcstoimax(const wchar_t *__restrict, wchar_t **__restrict, int);
-uintmax_t wcstoumax(const wchar_t *__restrict, wchar_t **__restrict, int);
+/* (In C, wchar_t by its builtin name: C code that includes only this
+ * header has no wchar_t. In C++ it is a type of its own.) */
+#ifdef __cplusplus
+#define __IRIX_INTTYPES_WCHAR wchar_t
+#else
+#define __IRIX_INTTYPES_WCHAR __WCHAR_TYPE__
 #endif
+intmax_t wcstoimax(const __IRIX_INTTYPES_WCHAR *__restrict,
+                   __IRIX_INTTYPES_WCHAR **__restrict, int);
+uintmax_t wcstoumax(const __IRIX_INTTYPES_WCHAR *__restrict,
+                    __IRIX_INTTYPES_WCHAR **__restrict, int);
+#undef __IRIX_INTTYPES_WCHAR
 #ifdef __cplusplus
 }
 #endif

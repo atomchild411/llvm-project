@@ -16,6 +16,7 @@
 extern "C" {
 #endif
 void cfmakeraw(struct termios *);
+int cfsetspeed(struct termios *, speed_t);
 #ifdef __cplusplus
 }
 #endif
