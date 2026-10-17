@@ -42,7 +42,19 @@
  * cabs and cabsl are C99's. */
 #define cabs __irix_struct_cabs
 #define cabsl __irix_struct_cabsl
+/* In SGI mode it also declares SVID's "enum version" (for _lib_version):
+ * in C++ a tag is a type name too, and a program's own "version" (a
+ * namespace in snapcast and gpick) clashed with it. C++ reads it under
+ * another tag. */
+#ifdef __cplusplus
+#pragma push_macro("version")
+#undef version
+#define version __irix_lib_version
+#endif
 #include_next <math.h>
+#ifdef __cplusplus
+#pragma pop_macro("version")
+#endif
 #undef cabs
 #undef cabsl
 
