@@ -14,3 +14,13 @@
 // RUN:   | FileCheck %s --check-prefix=CXX
 // CXX: "-lc++"
 // CXX-NOT: stdc++
+
+// A link that names libc++ itself gets the DT_RPATH to the driver's libc++
+// only when the driver runs on IRIX (where that tree is the program's); a
+// cross link leaves it to the user's -rpath.
+// RUN: %clang -### --target=mips-sgi-irix6.5 %s -nostdlib++ -lc++ 2>&1 \
+// RUN:   | FileCheck %s --check-prefix=CROSS
+// RUN: %clang -### --target=mips-sgi-irix6.5 %s -nostdlib -l stdc++ 2>&1 \
+// RUN:   | FileCheck %s --check-prefix=CROSS
+// CROSS: "-lc++"
+// CROSS-NOT: "-rpath"

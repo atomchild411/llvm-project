@@ -71,6 +71,9 @@ public:
       llvm::opt::ArgStringList &CC1Args) const override;
   void AddCXXStdlibLibArgs(const llvm::opt::ArgList &Args,
                            llvm::opt::ArgStringList &CmdArgs) const override;
+  // The DT_RPATH to the libc++ beside the driver, for a link that takes it.
+  void addLibcxxRPath(const llvm::opt::ArgList &Args,
+                      llvm::opt::ArgStringList &CmdArgs) const;
 
   const char *getDefaultLinker() const override { return "ld.lld"; }
 
