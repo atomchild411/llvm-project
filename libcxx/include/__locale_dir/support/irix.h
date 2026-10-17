@@ -232,7 +232,9 @@ _LIBCPP_GCC_DIAGNOSTIC_IGNORED("-Wformat-nonliteral")
 template <class... _Args>
 _LIBCPP_HIDE_FROM_ABI _LIBCPP_VARIADIC_ATTRIBUTE_FORMAT(__printf__, 4, 5) int __snprintf(
     char* __s, size_t __n, __locale_t, const char* __format, _Args&&... __args) {
-  return std::snprintf(__s, __n, __format, std::forward<_Args>(__args)...);
+  // ::, not std::: a program's own snprintf macro (PHP's ap_php_snprintf)
+  // then names its global function, not a std:: one that does not exist.
+  return ::snprintf(__s, __n, __format, std::forward<_Args>(__args)...);
 }
 
 // IRIX has no asprintf, and its pre-C99 snprintf does not report the length
@@ -247,7 +249,7 @@ _LIBCPP_HIDE_FROM_ABI _LIBCPP_VARIADIC_ATTRIBUTE_FORMAT(__printf__, 3, 4) int __
       *__s = nullptr;
       return -1;
     }
-    int __r = std::snprintf(__buf, __size, __format, __args...);
+    int __r = ::snprintf(__buf, __size, __format, __args...);
     if (__r >= 0 && static_cast<size_t>(__r) < __size - 1) {
       *__s = __buf;
       return __r;
@@ -260,7 +262,7 @@ _LIBCPP_HIDE_FROM_ABI _LIBCPP_VARIADIC_ATTRIBUTE_FORMAT(__printf__, 3, 4) int __
 template <class... _Args>
 _LIBCPP_HIDE_FROM_ABI _LIBCPP_VARIADIC_ATTRIBUTE_FORMAT(__scanf__, 3, 4) int __sscanf(
     const char* __s, __locale_t, const char* __format, _Args&&... __args) {
-  return std::sscanf(__s, __format, std::forward<_Args>(__args)...);
+  return ::sscanf(__s, __format, std::forward<_Args>(__args)...);
 }
 
 _LIBCPP_DIAGNOSTIC_POP
