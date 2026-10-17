@@ -14,6 +14,11 @@
 // pages are first written rather than for the whole range at once. The
 // descriptor argument is ignored, as POSIX allows for MAP_ANON.
 //
+// posix_madvise, which IRIX lacks: the advice is checked and then ignored,
+// as POSIX allows. IRIX's madvise refuses MADV_NORMAL, MADV_RANDOM,
+// MADV_SEQUENTIAL and MADV_WILLNEED (EINVAL), and its MADV_DONTNEED may
+// discard the pages' contents, where POSIX's is advice only.
+//
 // Its own file, so a program is only given these when it asks for them.
 //
 //===----------------------------------------------------------------------===//
@@ -67,6 +72,14 @@ void *__irix_mmap64(void *addr, size_t len, int prot, int flags, int fd,
   if (!(flags & __IRIX_MAP_ANON))
     return __irix_libc_mmap64(addr, len, prot, flags, fd, off);
   return __irix_mmap(addr, len, prot, flags, -1, 0);
+}
+
+int posix_madvise(void *addr, size_t len, int advice) {
+  (void)addr;
+  (void)len;
+  if (advice < POSIX_MADV_NORMAL || advice > POSIX_MADV_DONTNEED)
+    return EINVAL;
+  return 0;
 }
 
 #endif // defined(__sgi)
