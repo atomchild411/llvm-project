@@ -12,7 +12,8 @@
  * -- gets its MIN, MAX and TICK macros, which glibc's <sched.h> does not
  * give. C++ code that names a function or member MIN, MAX or TICK then fails
  * (freeimage, clustalw, espeak-ng). In C++, when <sys/param.h> came in only
- * this way, take those three back; the <sys/param.h> wrapper defines them
+ * this way, take back those of the three it brought, but not one defined
+ * before (glib's MIN and MAX: gegl); the <sys/param.h> wrapper defines them
  * again on any later #include of it. C is left as it was.
  */
 
@@ -21,15 +22,33 @@
 
 #if defined(__cplusplus) && !defined(_SYS_PARAM_H)
 #define __CLANG_IRIX_SCHED_PARAM
+#ifdef MIN
+#define __CLANG_IRIX_SCHED_HAD_MIN
+#endif
+#ifdef MAX
+#define __CLANG_IRIX_SCHED_HAD_MAX
+#endif
+#ifdef TICK
+#define __CLANG_IRIX_SCHED_HAD_TICK
+#endif
 #endif
 
 #include_next <sched.h>
 
 #ifdef __CLANG_IRIX_SCHED_PARAM
 #undef __CLANG_IRIX_SCHED_PARAM
+#ifndef __CLANG_IRIX_SCHED_HAD_MIN
 #undef MIN
+#endif
+#ifndef __CLANG_IRIX_SCHED_HAD_MAX
 #undef MAX
+#endif
+#ifndef __CLANG_IRIX_SCHED_HAD_TICK
 #undef TICK
+#endif
+#undef __CLANG_IRIX_SCHED_HAD_MIN
+#undef __CLANG_IRIX_SCHED_HAD_MAX
+#undef __CLANG_IRIX_SCHED_HAD_TICK
 #endif
 
 #endif /* __CLANG_IRIX_SCHED_H */
