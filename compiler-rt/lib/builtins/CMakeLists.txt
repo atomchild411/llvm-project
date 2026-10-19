@@ -256,6 +256,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "IRIX")
     irix/cloexec.c
     irix/pthread_np.c
     irix/loadavg.c
+    irix/lgamma_r.c
     irix/fnmatch.c
     irix/nameser.c
     irix/pthread_timedlock.c

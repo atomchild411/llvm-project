@@ -24,6 +24,14 @@
 
 #include_next <netinet/in.h>
 
+/* htonl, htons, ntohl and ntohs: POSIX has <netinet/in.h> provide them in
+ * every mode; IRIX's includes <sys/endian.h>, where they are, only in SGI
+ * mode, so code built with _XOPEN_SOURCE (every Python extension) or
+ * _POSIX_C_SOURCE found them undeclared. */
+#if !_SGIAPI
+#include <sys/endian.h>
+#endif
+
 /* POSIX's IPv4 constant, which IRIX defines only under INET6. */
 #ifndef INET_ADDRSTRLEN
 #define INET_ADDRSTRLEN 16

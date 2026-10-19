@@ -170,6 +170,12 @@ double trunc(double);
 float truncf(float);
 /* No IRIX has it: irix/math_c99.c. */
 float nexttowardf(float, long double);
+/* glibc's and the BSDs' reentrant lgamma (sign through the pointer), in
+ * compiler-rt (irix/lgamma_r.c); libc++'s binomial_distribution uses it. */
+#if !defined(__STRICT_ANSI__) || defined(_GNU_SOURCE) || defined(_DEFAULT_SOURCE) || defined(_BSD_SOURCE)
+double lgamma_r(double, int *);
+float lgammaf_r(float, int *);
+#endif
 #ifdef __cplusplus
 }
 #endif
