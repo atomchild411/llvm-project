@@ -57,4 +57,12 @@ void *dlsym(void *, const char *) __asm__("__irix_dlsym");
 #endif
 #endif
 
+/* RTLD_NODELETE (glibc, the BSDs): IRIX dlopen has no such flag. As 0 it
+ * asks for nothing extra: a library is still unloaded at its last dlclose.
+ * (glmark2). RTLD_NOLOAD stays undefined, so code probing for it sees it
+ * is unsupported. */
+#ifndef RTLD_NODELETE
+#define RTLD_NODELETE 0
+#endif
+
 #endif /* __CLANG_IRIX_DLFCN_H */

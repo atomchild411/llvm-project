@@ -429,6 +429,8 @@ set(irix_wrapper_files
   irix_wrappers/locale.h
   irix_wrappers/math.h
   irix_wrappers/netdb.h
+  irix_wrappers/paths.h
+  irix_wrappers/poll.h
   irix_wrappers/pthread.h
   irix_wrappers/pty.h
   irix_wrappers/spawn.h
@@ -453,6 +455,8 @@ set(irix_wrapper_internal_files
 # Installed under irix_wrappers/sys/.
 set(irix_wrapper_sys_files
   irix_wrappers/sys/bitypes.h
+  irix_wrappers/sys/cdefs.h
+  irix_wrappers/sys/poll.h
   irix_wrappers/sys/endian.h
   irix_wrappers/sys/kabi.h
   irix_wrappers/sys/param.h
@@ -479,6 +483,7 @@ set(irix_wrapper_sys_files
 set(irix_wrapper_arpa_files
   irix_wrappers/arpa/inet.h
   irix_wrappers/arpa/nameser.h
+  irix_wrappers/arpa/telnet.h
 )
 set(irix_wrapper_net_files
   irix_wrappers/net/ethernet.h
