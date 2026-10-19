@@ -41,7 +41,18 @@
 #if defined(__cplusplus) || !defined(__STRICT_ANSI__)
 #include <alloca.h>
 #endif
+/* Only while putenv is still ours: a gnulib <stdlib.h> reached during the
+ * include_next (IRIX's includes <getopt.h>, gnulib's getopt.h includes
+ * <stdlib.h>) may have made it `rpl_putenv', which must stay (gnuit). */
+#define __IRIX_PUTENV_IS___irix_putenv_declaration 1
+#define __IRIX_PUTENV_CAT(a, b) a##b
+#define __IRIX_PUTENV_XCAT(a, b) __IRIX_PUTENV_CAT(a, b)
+#if __IRIX_PUTENV_XCAT(__IRIX_PUTENV_IS_, putenv)
 #undef putenv
+#endif
+#undef __IRIX_PUTENV_IS___irix_putenv_declaration
+#undef __IRIX_PUTENV_CAT
+#undef __IRIX_PUTENV_XCAT
 #ifdef __IRIX_GETOPT_INDIRECT_STDLIB
 #undef __IRIX_GETOPT_INDIRECT
 #undef __IRIX_GETOPT_INDIRECT_STDLIB
