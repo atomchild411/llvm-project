@@ -204,4 +204,23 @@ void _Exit(int) __attribute__((__noreturn__));
 }
 #endif
 
+
+/* The locale-taking strtod and friends (glibc's and the BSDs'), which
+ * compiler-rt's IRIX builtins define (irix/locale_l.c): with a newlocale()
+ * locale, which is always the C locale, a '.' is the decimal point
+ * whatever setlocale() set. */
+#include <__irix_locale_t.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
+double strtod_l(const char *__restrict, char **__restrict, locale_t);
+float strtof_l(const char *__restrict, char **__restrict, locale_t);
+long strtol_l(const char *__restrict, char **__restrict, int, locale_t);
+unsigned long strtoul_l(const char *__restrict, char **__restrict, int, locale_t);
+long long strtoll_l(const char *__restrict, char **__restrict, int, locale_t);
+unsigned long long strtoull_l(const char *__restrict, char **__restrict, int, locale_t);
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* __CLANG_IRIX_STDLIB_H */

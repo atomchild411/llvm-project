@@ -86,4 +86,10 @@
 #endif
 #endif
 
+/* GID_MAX: IRIX's UID_MAX is the "max value for a user or group ID"; the
+ * BSDs name both (opendoas). */
+#if defined(UID_MAX) && !defined(GID_MAX)
+#define GID_MAX UID_MAX
+#endif
+
 #endif /* __CLANG_IRIX_LIMITS_H */

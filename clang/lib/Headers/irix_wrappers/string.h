@@ -81,6 +81,7 @@ extern "C" {
 #endif
 int strcoll_l(const char *, const char *, locale_t);
 size_t strxfrm_l(char *__restrict, const char *__restrict, size_t, locale_t);
+char *strerror_l(int, locale_t);
 #ifdef __cplusplus
 }
 #endif

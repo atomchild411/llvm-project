@@ -28,6 +28,13 @@
 #include <time.h>
 #include <wchar.h>
 
+#pragma weak strerror_l
+#pragma weak strtod_l
+#pragma weak strtof_l
+#pragma weak strtol_l
+#pragma weak strtoul_l
+#pragma weak strtoll_l
+#pragma weak strtoull_l
 #pragma weak isalnum_l
 #pragma weak isalpha_l
 #pragma weak isblank_l
@@ -315,6 +322,70 @@ char *nl_langinfo_l(nl_item item, locale_t l) {
   if (GLOBAL(l))
     return nl_langinfo(item);
   return (char *)c_langinfo(item);
+}
+
+// strerror_l: IRIX's messages are the C locale's.
+char *strerror_l(int e, locale_t l) {
+  (void)l;
+  return strerror(e);
+}
+
+// strtod_l and strtof_l: in the C locale (a newlocale() one) the decimal
+// point is '.', whatever setlocale() made it for strtod. Where it is not '.'
+// the number is copied with the '.' swapped for it, and the end mapped back.
+static const char *c_to_global(const char *s, char *buf, size_t n) {
+  const char *dp = localeconv()->decimal_point;
+  size_t i;
+  if (dp == NULL || dp[0] == '\0' || (dp[0] == '.' && dp[1] == '\0') || dp[1] != '\0')
+    return s;
+  for (i = 0; i + 1 < n && s[i] != '\0'; i++)
+    buf[i] = s[i] == '.' ? dp[0] : s[i] == dp[0] ? '.' : s[i];
+  buf[i] = '\0';
+  return buf;
+}
+
+double strtod_l(const char *restrict s, char **restrict end, locale_t l) {
+  char buf[512], *e;
+  const char *t;
+  double d;
+  if (GLOBAL(l))
+    return strtod(s, end);
+  t = c_to_global(s, buf, sizeof buf);
+  d = strtod(t, &e);
+  if (end)
+    *end = (char *)s + (e - t);
+  return d;
+}
+
+float strtof_l(const char *restrict s, char **restrict end, locale_t l) {
+  char buf[512], *e;
+  const char *t;
+  float f;
+  if (GLOBAL(l))
+    return strtof(s, end);
+  t = c_to_global(s, buf, sizeof buf);
+  f = strtof(t, &e);
+  if (end)
+    *end = (char *)s + (e - t);
+  return f;
+}
+
+// The integer ones do not depend on the locale.
+long strtol_l(const char *restrict s, char **restrict end, int b, locale_t l) {
+  (void)l;
+  return strtol(s, end, b);
+}
+unsigned long strtoul_l(const char *restrict s, char **restrict end, int b, locale_t l) {
+  (void)l;
+  return strtoul(s, end, b);
+}
+long long strtoll_l(const char *restrict s, char **restrict end, int b, locale_t l) {
+  (void)l;
+  return strtoll(s, end, b);
+}
+unsigned long long strtoull_l(const char *restrict s, char **restrict end, int b, locale_t l) {
+  (void)l;
+  return strtoull(s, end, b);
 }
 
 #endif // __sgi

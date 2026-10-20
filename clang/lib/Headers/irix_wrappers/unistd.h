@@ -336,4 +336,12 @@ extern "C" char **environ;
 extern char **environ;
 #endif
 
+/* _POSIX_MONOTONIC_CLOCK: IRIX's <unistd.h> has _POSIX_TIMERS but not
+ * this, while clang's IRIX <time.h> provides CLOCK_MONOTONIC (compiler-rt,
+ * from times()). Code that gates clock_gettime(CLOCK_MONOTONIC) on it took
+ * other paths (hamlib's precise_time.c: x86 assembly). */
+#if defined(_POSIX_TIMERS) && !defined(_POSIX_MONOTONIC_CLOCK)
+#define _POSIX_MONOTONIC_CLOCK 200112L
+#endif
+
 #endif /* __CLANG_IRIX_UNISTD_H */

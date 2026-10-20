@@ -37,6 +37,15 @@
 #else
 #include_next <sys/stat.h>
 #endif
+/* POSIX has <sys/stat.h> define AT_FDCWD and AT_SYMLINK_NOFOLLOW (for
+ * fstatat and utimensat), as glibc's does through <fcntl.h>'s bits; IRIX's
+ * has neither (sudo's utimens.c). The <fcntl.h> wrapper's values. */
+#ifndef AT_FDCWD
+#define AT_FDCWD (-100)
+#endif
+#ifndef AT_SYMLINK_NOFOLLOW
+#define AT_SYMLINK_NOFOLLOW 0x100
+#endif
 #ifndef UTIME_NOW
 #define UTIME_NOW ((1L << 30) - 1)
 #define UTIME_OMIT ((1L << 30) - 2)
