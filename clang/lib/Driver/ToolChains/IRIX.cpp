@@ -59,7 +59,7 @@ IRIX::IRIX(const Driver &D, const llvm::Triple &Triple, const ArgList &Args)
   getFilePaths().push_back(SysRoot + "/lib" + LibSuffix);
   // LLVM's own runtimes (libc++ and its companions), if installed in a tree
   // beside the driver: in lib32 or lib64, as in /opt/llvm, or for n32 in lib,
-  // as in /opt/pkgsrc, whose n32 libraries live there.
+  // as in pkgsrc's /usr/pkg, whose n32 libraries live there.
   std::string Prefix = llvm::sys::path::parent_path(D.Dir).str();
   for (const std::string &Dir :
        {Prefix + "/lib" + LibSuffix,
@@ -383,8 +383,22 @@ void irix::Linker::ConstructJob(Compilation &C, const JobAction &JA,
       LinkedRuntime = true;
     }
 
-    if (Args.hasArg(options::OPT_pthread))
+    // libpthread before libc, also without -pthread, but only as needed:
+    // IRIX's libc has stubs for the pthread functions, so an object that
+    // calls them links without libpthread. rld runs the init code of
+    // unrelated objects in reverse load order, so if libpthread is loaded
+    // earlier (another library needs it), such an object's init code runs
+    // before libpthread's, and a pthread call there crashes the program
+    // before main. Linking libpthread first makes it NEEDED wherever a
+    // pthread function is used (it exports nothing else).
+    if (Args.hasArg(options::OPT_pthread)) {
       CmdArgs.push_back("-lpthread");
+    } else if (!Args.hasArg(options::OPT_nolibc)) {
+      CmdArgs.push_back("--push-state");
+      CmdArgs.push_back("--as-needed");
+      CmdArgs.push_back("-lpthread");
+      CmdArgs.push_back("--pop-state");
+    }
 
     if (!Args.hasArg(options::OPT_nolibc))
       CmdArgs.push_back("-lc");

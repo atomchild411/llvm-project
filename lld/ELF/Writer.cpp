@@ -188,6 +188,13 @@ void elf::addReservedSymbols(Ctx &ctx) {
     // https://sourceware.org/ml/binutils/2004-12/msg00094.html
     if (ctx.symtab->find("__gnu_local_gp"))
       ctx.sym.mipsLocalGp = addAbsolute("__gnu_local_gp");
+
+    // IRIX: crt1.o refers to _DYNAMIC_LINK, an absolute symbol (2) that libc
+    // and libpthread both define. Resolved to a library, it makes that one
+    // NEEDED under --as-needed: with libpthread linked before libc, every
+    // program would need libpthread. Defined here, with the same value.
+    if (ctx.arg.osabi == ELFOSABI_IRIX && !ctx.arg.shared)
+      addOptionalRegular(ctx, "_DYNAMIC_LINK", nullptr, 2, STV_HIDDEN);
   } else if (ctx.arg.emachine == EM_PPC) {
     // glibc *crt1.o has a undefined reference to _SDA_BASE_. Since we don't
     // support Small Data Area, define it arbitrarily as 0.
