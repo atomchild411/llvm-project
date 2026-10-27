@@ -281,6 +281,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "IRIX")
     irix/process_bsd.c
     irix/memstream.c
     irix/wscanf.c
+    irix/wcsftime.c
     irix/pty.c
     irix/locale_l.c
     irix/fcntl.c
