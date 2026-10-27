@@ -31,6 +31,7 @@
 #if defined(__sgi)
 
 #include <errno.h>
+#include "irix_errno.h"
 #include <pthread.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -117,7 +118,7 @@ static int update(struct memstream *m) {
 FILE *open_memstream(char **bufp, size_t *sizep) {
   struct memstream m = {0};
   if (bufp == NULL || sizep == NULL) {
-    errno = EINVAL;
+    __irix_seterrno(EINVAL);
     return NULL;
   }
   if ((m.f = __irix_libc_tmpfile()) == NULL)
@@ -140,7 +141,7 @@ FILE *open_memstream(char **bufp, size_t *sizep) {
 FILE *fmemopen(void *buf, size_t size, const char *mode) {
   struct memstream m = {0};
   if (size == 0 || mode == NULL || strchr("rwa", mode[0]) == NULL) {
-    errno = EINVAL;
+    __irix_seterrno(EINVAL);
     return NULL;
   }
   m.buf = buf;

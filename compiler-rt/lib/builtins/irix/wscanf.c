@@ -22,6 +22,7 @@
 #if defined(__sgi)
 
 #include <errno.h>
+#include "irix_errno.h"
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,7 +40,7 @@ static char *narrow(const wchar_t *ws) {
   size_t n = wcstombs(NULL, ws, 0);
   char *s;
   if (n == (size_t)-1) {
-    errno = EILSEQ;
+    __irix_seterrno(EILSEQ);
     return NULL;
   }
   if ((s = malloc(n + 1)) != NULL)

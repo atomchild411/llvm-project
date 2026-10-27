@@ -240,8 +240,6 @@ void irix::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   // IRIX has no RELRO.
   CmdArgs.push_back("-z");
   CmdArgs.push_back("norelro");
-  // rld (6.5.7 at least) reads DT_RPATH and ignores DT_RUNPATH.
-  CmdArgs.push_back("--disable-new-dtags");
   // RPM's debuginfo tooling wants a build ID.
   CmdArgs.push_back("--build-id");
   CmdArgs.push_back("--eh-frame-hdr");
@@ -311,6 +309,10 @@ void irix::Linker::ConstructJob(Compilation &C, const JobAction &JA,
 
   size_t InputsBegin = CmdArgs.size();
   AddLinkerInputs(TC, Inputs, Args, CmdArgs, JA);
+  // rld (6.5.7 at least) reads DT_RPATH and ignores DT_RUNPATH. After the
+  // inputs, so that it overrides a -Wl,--enable-new-dtags there (sudo's
+  // configure adds one): lld takes the last of the two.
+  CmdArgs.push_back("--disable-new-dtags");
 
   // IRIX has no libutil: its pseudo-terminal functions (openpty, forkpty,
   // login_tty) are in the builtins library (irix/pty.c). Links that ask for

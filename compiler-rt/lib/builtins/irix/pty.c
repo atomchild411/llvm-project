@@ -27,6 +27,7 @@
 #if defined(__sgi)
 
 #include <errno.h>
+#include "irix_errno.h"
 #include <fcntl.h>
 #include <string.h>
 #include <sys/ioctl.h>
@@ -46,7 +47,7 @@ int openpty(int *amaster, int *aslave, char *name,
   if (slave < 0) {
     e = errno;
     close(master);
-    errno = e;
+    __irix_seterrno(e);
     return -1;
   }
   if (name != NULL)
@@ -94,7 +95,7 @@ pid_t forkpty(int *amaster, char *name, const struct termios *termp,
     e = errno;
     close(master);
     close(slave);
-    errno = e;
+    __irix_seterrno(e);
     return -1;
   }
   if (pid == 0) {

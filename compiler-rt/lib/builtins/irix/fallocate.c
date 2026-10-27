@@ -19,6 +19,7 @@
 #if defined(__sgi)
 
 #include <errno.h>
+#include "irix_errno.h"
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -38,7 +39,7 @@ int posix_fallocate(int fd, off_t offset, off_t len) {
     return EFBIG;
   if (fstat(fd, &st) != 0) {
     err = errno;
-    errno = saved;
+    __irix_seterrno(saved);
     return err;
   }
   if (S_ISFIFO(st.st_mode))
@@ -67,7 +68,7 @@ int posix_fallocate(int fd, off_t offset, off_t len) {
   if (!err && fstat(fd, &st) == 0 && st.st_size < end &&
       ftruncate(fd, end) != 0)
     err = errno;
-  errno = saved;
+  __irix_seterrno(saved);
   return err;
 }
 

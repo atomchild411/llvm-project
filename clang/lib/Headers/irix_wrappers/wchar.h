@@ -54,6 +54,19 @@ extern "C"
 wchar_t *wcstok(wchar_t *__restrict, const wchar_t *__restrict,
                 wchar_t **__restrict) __asm__("wcstok_r");
 
+/* Outside X/Open 5 mode IRIX's wcsftime is XPG4's, with a char * format;
+ * C95's is _xpg5_wcsftime, which X/Open 5 mode reaches through an inline.
+ * Python's time.strftime passed it a wide format and got "" back. */
+#if _NO_XOPEN5 && (_MIPS_SIM == _ABIN32 || _MIPS_SIM == _ABI64)
+struct tm;
+#ifdef __cplusplus
+extern "C"
+#endif
+size_t _xpg5_wcsftime(wchar_t *__restrict, size_t, const wchar_t *__restrict,
+                      const struct tm *__restrict);
+#define wcsftime _xpg5_wcsftime
+#endif
+
 #if defined(__cplusplus) && defined(_E1)
 #undef _ISwprint
 #undef _ISwgraph
