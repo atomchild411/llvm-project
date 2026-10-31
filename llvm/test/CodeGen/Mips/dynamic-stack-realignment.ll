@@ -142,7 +142,8 @@ entry:
   ; N32-DAG:    addiu   $[[T0:[0-9]+]], $sp, 512
   ; N64-DAG:    daddiu  $[[T0:[0-9]+]], $sp, 512
   ; GP64-DAG:   sd      $[[T0]], 0($sp)
-  ; GP64-DAG:   ld      $[[T1:[0-9]+]], 1024($fp)
+  ; N64-DAG:    ld      $[[T1:[0-9]+]], 1024($fp)
+  ; N32-DAG:    lw      $[[T1:[0-9]+]], 1028($fp)
   ; GP64-DAG:   sd      $[[T1]], 8($sp)
 
   %a = alloca i32, align 512

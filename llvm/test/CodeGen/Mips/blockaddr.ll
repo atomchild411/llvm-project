@@ -30,13 +30,15 @@ entry:
 ; STATIC-O32: lui   $[[R3:[0-9]+]], %hi($tmp[[T3:[0-9]+]])
 ; STATIC-O32: addiu ${{[0-9]+}}, $[[R3]], %lo($tmp[[T3]])
 
-; PIC-N32: lw  $[[R0:[0-9]+]], %got_page(.Ltmp[[T0:[0-9]+]])
-; PIC-N32: addiu ${{[0-9]+}}, $[[R0]], %got_ofst(.Ltmp[[T0]])
+; PIC-N32: addiu $[[O0:[0-9]+]], $zero, %got_ofst(.Ltmp[[T0:[0-9]+]])
+; PIC-N32: lw  $[[R0:[0-9]+]], %got_page(.Ltmp[[T0]])
+; PIC-N32: addu ${{[0-9]+}}, $[[R0]], $[[O0]]
 ; PIC-N32: lw  $[[R1:[0-9]+]], %got_page(.Ltmp[[T1:[0-9]+]])
 ; PIC-N32: addiu ${{[0-9]+}}, $[[R1]], %got_ofst(.Ltmp[[T1]])
 
-; STATIC-N32: lui  $[[R2:[0-9]+]], %hi(.Ltmp[[T2:[0-9]+]])
-; STATIC-N32: addiu ${{[0-9]+}}, $[[R2]], %lo(.Ltmp[[T2]])
+; STATIC-N32: addiu $[[O2:[0-9]+]], $zero, %lo(.Ltmp[[T2:[0-9]+]])
+; STATIC-N32: lui  $[[R2:[0-9]+]], %hi(.Ltmp[[T2]])
+; STATIC-N32: addu ${{[0-9]+}}, $[[R2]], $[[O2]]
 ; STATIC-N32: lui   $[[R3:[0-9]+]], %hi(.Ltmp[[T3:[0-9]+]])
 ; STATIC-N32: addiu ${{[0-9]+}}, $[[R3]], %lo(.Ltmp[[T3]])
 

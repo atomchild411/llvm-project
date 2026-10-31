@@ -62,9 +62,10 @@ define void @f3(i16 %b) {
 ; MIPS64-N32-NEXT:    addu $1, $1, $25
 ; MIPS64-N32-NEXT:    addiu $gp, $1, %lo(%neg(%gp_rel(f3)))
 ; MIPS64-N32-NEXT:    sh $4, 14($sp)
+; MIPS64-N32-NEXT:    addiu $1, $sp, 14
 ; MIPS64-N32-NEXT:    lw $25, %call16(k2)($gp)
 ; MIPS64-N32-NEXT:    jalr $25
-; MIPS64-N32-NEXT:    addiu $4, $sp, 14
+; MIPS64-N32-NEXT:    sll $4, $1, 0
 ; MIPS64-N32-NEXT:    lw $1, %got_disp(k)($gp)
 ; MIPS64-N32-NEXT:    swc1 $f0, 0($1)
 ; MIPS64-N32-NEXT:    ld $gp, 16($sp) # 8-byte Folded Reload
