@@ -260,7 +260,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "IRIX")
     irix/fnmatch.c
     irix/nameser.c
     irix/pthread_timedlock.c
-    irix/pthread_spin.c
     irix/netdb.c
     irix/socket.c
     irix/misc.c
@@ -290,6 +289,18 @@ if(CMAKE_SYSTEM_NAME STREQUAL "IRIX")
     irix/dlsym.c
     irix/fts.c
   )
+
+  # IRIX gained POSIX spin locks in 6.5.30; supply our implementation only
+  # when the target libc lacks the type, so a 6.5.30 build does not collide
+  # with the system declarations. The pthread.h wrapper needs a matching
+  # header guard (see the PR description).
+  include(CheckTypeSize)
+  set(CMAKE_EXTRA_INCLUDE_FILES pthread.h)
+  check_type_size(pthread_spinlock_t IRIX_PTHREAD_SPINLOCK_T)
+  unset(CMAKE_EXTRA_INCLUDE_FILES)
+  if(NOT HAVE_IRIX_PTHREAD_SPINLOCK_T)
+    set(GENERIC_SOURCES ${GENERIC_SOURCES} irix/pthread_spin.c)
+  endif()
   # They stand in for libc's functions, so they keep default visibility: a
   # shared library linked without the builtins (libtool links C++ libraries
   # with -nostdlib) leaves them undefined, and the program that links them
