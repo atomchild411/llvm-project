@@ -10,11 +10,27 @@
 // calls, and fdopendir, none of which any IRIX 6.5 libc has; clang's IRIX
 // wrappers declare them, with the AT_ constants (<fcntl.h>).
 //
-// A path relative to a directory descriptor is made absolute -- fchdir to
-// the directory, getcwd, fchdir back -- and given to IRIX's own call. So
-// they are not atomic as the real ones are: the directory's path is read
-// at the call, and the process's working directory changes for a moment,
-// which another thread resolving a relative path at that moment would see.
+// A path relative to a directory descriptor is made absolute and given to
+// IRIX's own call, so they are not atomic as the real ones are. The
+// directory's path comes from a table of descriptor number to path, filled
+// when a directory is opened here or when its path is first worked out. An
+// entry is trusted only while fstat(fd) and stat(path) name the same device
+// and inode, so a descriptor that was closed and reused, or a directory that
+// was renamed, is noticed and the entry dropped. With a valid entry nothing
+// changes the process's working directory. (The path can still go stale
+// between that check and the call, if the directory is renamed in that
+// instant; a real openat cannot.)
+//
+// A descriptor with no valid entry (a directory opened by something else:
+// opendir, a descriptor inherited or received, or one renamed since) has its
+// path read the one way IRIX allows: fchdir to it, getcwd, fchdir back. That
+// is the remaining window. IRIX's pthreads share the working directory and
+// getcwd walks ".." with open and getdents, so for that long the whole
+// process is in the other directory, and a thread outside this file that
+// resolves a relative path then sees it. The calls in this file are
+// serialized with each other by a lock, so two threads in them cannot see
+// each other's directory; a thread outside this file is not stopped. The
+// result is cached, so the window opens once per descriptor, not per call.
 // An absolute path, or AT_FDCWD, goes straight to IRIX's call.
 //
 // What IRIX cannot do is refused: AT_SYMLINK_NOFOLLOW for fchmodat and
@@ -33,6 +49,7 @@
 #include "irix_errno.h"
 #include <fcntl.h>
 #include <limits.h>
+#include <sched.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -51,11 +68,125 @@
 // adds O_CLOEXEC and the like (irix/cloexec.c) and is what openat wants.
 extern int __irix_libc_open(const char *, int, ...) __asm__("open");
 
+// Held while the working directory is changed, so that two of these calls
+// never run their fchdir/getcwd/fchdir at once: each would read the other's
+// directory (or the restored one) and hand back the wrong path.
+static volatile int at_lock_word;
+
+static void at_lock(void) {
+  while (__sync_lock_test_and_set(&at_lock_word, 1))
+    sched_yield();
+}
+
+static void at_unlock(void) { __sync_lock_release(&at_lock_word); }
+
+// What is known of directory descriptors: the absolute path each one was
+// opened as, with the device and inode it must still name. Indexed by
+// descriptor number (those beyond the table take the slow way), guarded by
+// at_lock. A descriptor closed behind our back leaves a stale entry; the
+// identity check on use is what makes that harmless.
+#define AT_TABLE 4096
+static struct at_entry {
+  char *path;
+  dev_t dev;
+  ino_t ino;
+} at_table[AT_TABLE];
+
+// Remember that FD is the directory named by the absolute path P, if that
+// path really names what FD is.
+static void at_remember(int fd, const char *p) {
+  struct stat a, b;
+  char *copy, *old;
+  if (fd < 0 || fd >= AT_TABLE || p[0] != '/' || strlen(p) >= PATH_MAX)
+    return;
+  if (fstat(fd, &a) < 0 || !S_ISDIR(a.st_mode) || stat(p, &b) < 0 ||
+      a.st_dev != b.st_dev || a.st_ino != b.st_ino)
+    return;
+  copy = strdup(p);
+  if (copy == 0)
+    return;
+  at_lock();
+  old = at_table[fd].path;
+  at_table[fd].path = copy;
+  at_table[fd].dev = a.st_dev;
+  at_table[fd].ino = a.st_ino;
+  at_unlock();
+  free(old);
+}
+
+// Copy the path known for FD into BUF if it is still right: two stats and no
+// change of directory. An entry that fails the check is dropped.
+static int at_lookup(int fd, char *buf) {
+  struct stat a, b;
+  char *drop = 0;
+  int ok = 0;
+  if (fd < 0 || fd >= AT_TABLE || fstat(fd, &a) < 0)
+    return 0;
+  at_lock();
+  if (at_table[fd].path) {
+    if (at_table[fd].dev == a.st_dev && at_table[fd].ino == a.st_ino) {
+      strcpy(buf, at_table[fd].path); // stored only when it fits PATH_MAX
+      ok = 1;
+    } else { // the number now names another directory
+      drop = at_table[fd].path;
+      at_table[fd].path = 0;
+    }
+  }
+  at_unlock();
+  free(drop);
+  if (!ok)
+    return 0;
+  if (stat(buf, &b) == 0 && b.st_dev == a.st_dev && b.st_ino == a.st_ino)
+    return 1;
+  // renamed or removed since; forget it unless it was replaced meanwhile
+  at_lock();
+  if (at_table[fd].path && strcmp(at_table[fd].path, buf) == 0) {
+    drop = at_table[fd].path;
+    at_table[fd].path = 0;
+  }
+  at_unlock();
+  free(drop);
+  return 0;
+}
+
+// FD's directory path into BUF the slow way: with the lock held, fchdir to
+// it, getcwd, fchdir back. For the length of the getcwd every thread of the
+// process is in that directory.
+static int at_getcwd_path(int fd, char *buf) {
+  int cwd, e;
+  at_lock();
+  cwd = __irix_libc_open(".", O_RDONLY);
+  if (cwd < 0) {
+    e = errno;
+    at_unlock();
+    __irix_seterrno(e);
+    return 0;
+  }
+  if (fchdir(fd) < 0) {
+    e = errno;
+    close(cwd);
+    at_unlock();
+    __irix_seterrno(e);
+    return 0;
+  }
+  if (getcwd(buf, PATH_MAX) == 0) {
+    e = errno;
+    fchdir(cwd);
+    close(cwd);
+    at_unlock();
+    __irix_seterrno(e);
+    return 0;
+  }
+  fchdir(cwd);
+  close(cwd);
+  at_unlock();
+  return 1;
+}
+
 // PATH resolved against the directory FD into BUF (PATH_MAX bytes), or PATH
 // itself when it is absolute or FD is AT_FDCWD. Returns 0 with errno set if
 // the directory cannot be entered or the result does not fit.
 static const char *at_path(int fd, const char *path, char *buf) {
-  int cwd, e;
   size_t n;
   if (path == 0) {
     __irix_seterrno(EFAULT);
@@ -67,26 +198,11 @@ static const char *at_path(int fd, const char *path, char *buf) {
     __irix_seterrno(ENOENT);
     return 0;
   }
-  cwd = __irix_libc_open(".", O_RDONLY);
-  if (cwd < 0)
-    return 0;
-  if (fchdir(fd) < 0) {
-    e = errno;
-    close(cwd);
-    __irix_seterrno(e);
-    return 0;
+  if (!at_lookup(fd, buf)) {
+    if (!at_getcwd_path(fd, buf))
+      return 0;
+    at_remember(fd, buf);
   }
-  if (getcwd(buf, PATH_MAX) == 0) {
-    e = errno;
-    fchdir(cwd);
-    close(cwd);
-    __irix_seterrno(e);
-    return 0;
-  }
-  e = errno;
-  fchdir(cwd);
-  close(cwd);
-  __irix_seterrno(e);
   n = strlen(buf);
   if (n + 1 + strlen(path) + 1 > PATH_MAX) {
     __irix_seterrno(ENAMETOOLONG);
@@ -96,6 +212,34 @@ static const char *at_path(int fd, const char *path, char *buf) {
     buf[n++] = '/';
   strcpy(buf + n, path);
   return buf;
+}
+
+// FD was just opened as P (what openat was given, or made of it). If it is a
+// directory, remember its path for the calls that will be relative to it. A
+// path relative to the working directory is made absolute first; at_remember
+// checks the result against the descriptor, so a chdir racing with this only
+// costs the entry.
+static void at_opened(int fd, int flags, const char *p) {
+  char buf[PATH_MAX];
+  size_t n;
+  struct stat st;
+  if (fd < 0 || fd >= AT_TABLE || (flags & O_ACCMODE) != O_RDONLY)
+    return;
+  if (fstat(fd, &st) < 0 || !S_ISDIR(st.st_mode))
+    return;
+  if (p[0] == '/') {
+    at_remember(fd, p);
+    return;
+  }
+  if (getcwd(buf, PATH_MAX) == 0)
+    return;
+  n = strlen(buf);
+  if (n + 1 + strlen(p) + 1 > PATH_MAX)
+    return;
+  if (n == 0 || buf[n - 1] != '/')
+    buf[n++] = '/';
+  strcpy(buf + n, p);
+  at_remember(fd, buf);
 }
 
 #define AT(fd, path)                                                           \
@@ -113,8 +257,12 @@ int openat(int fd, const char *path, int flags, ...) {
     mode = (mode_t)va_arg(ap, int);
     va_end(ap);
   }
+  int r;
   AT(fd, path);
-  return open(at_p_, flags, mode);
+  r = open(at_p_, flags, mode);
+  if (r >= 0)
+    at_opened(r, flags, at_p_);
+  return r;
 }
 
 #pragma weak fstatat
@@ -133,8 +281,12 @@ int openat64(int fd, const char *path, int flags, ...) {
     mode = (mode_t)va_arg(ap, int);
     va_end(ap);
   }
+  int r;
   AT(fd, path);
-  return open64(at_p_, flags, mode);
+  r = open64(at_p_, flags, mode);
+  if (r >= 0)
+    at_opened(r, flags, at_p_);
+  return r;
 }
 
 #pragma weak fstatat64
@@ -309,41 +461,32 @@ int utimensat(int fd, const char *path, const struct timespec ts[2],
 }
 
 // A DIR for the directory FD, which then belongs to it (closedir closes
-// it): the directory is opened again by path and its descriptor moved onto
-// FD's number.
+// it). IRIX's opendir is given a directory that always exists to make the
+// DIR and its buffer, and the DIR is pointed at FD instead: no path, no
+// change of directory, and FD keeps its number. (An earlier version opened
+// FD's directory again by path and dup2'd the new descriptor onto FD. IRIX's
+// dup2 is close followed by fcntl(F_DUPFD) -- not atomic -- and the threads
+// of a process share one descriptor table, so another thread's open could
+// take FD's number in between; the DIR then closed that thread's file.)
 #pragma weak fdopendir
 DIR *fdopendir(int fd) {
-  char buf[PATH_MAX];
   struct stat st;
-  const char *p;
   DIR *d;
-  int dfd, e, fdflags;
   if (fstat(fd, &st) < 0)
     return 0;
-  fdflags = fcntl(fd, F_GETFD);
   if (!S_ISDIR(st.st_mode)) {
     __irix_seterrno(ENOTDIR);
     return 0;
   }
-  p = at_path(fd, ".", buf);
-  if (p == 0)
-    return 0;
-  d = opendir(p);
+  d = opendir("/");
   if (d == 0)
     return 0;
-  dfd = dirfd(d);
-  if (dfd != fd) {
-    if (dup2(dfd, fd) < 0) {
-      e = errno;
-      closedir(d);
-      __irix_seterrno(e);
-      return 0;
-    }
-    close(dfd);
-    d->dd_fd = fd;
-    if (fdflags >= 0)
-      fcntl(fd, F_SETFD, fdflags); // dup2 cleared close-on-exec
-  }
+  // the spare descriptor opendir made is ours alone until it is closed
+  close(d->dd_fd);
+  d->dd_fd = fd;
+  d->dd_loc = 0;
+  d->dd_size = 0;
+  d->__dd_flags &= ~_DIR_FLAGS_SEEN_EOF;
   return d;
 }
 
