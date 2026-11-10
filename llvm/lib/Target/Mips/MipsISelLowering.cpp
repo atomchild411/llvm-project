@@ -2975,7 +2975,11 @@ static SDValue lowerFP_TO_SINT_STORE(StoreSDNode *SD, SelectionDAG &DAG,
                                      bool SingleFloat) {
   SDValue Val = SD->getValue();
 
-  if (Val.getOpcode() != ISD::FP_TO_SINT ||
+  // A truncating store, such as (truncstore (i64 fp_to_sint $fp), $ptr) to
+  // i32, writes fewer bytes than Val has. The store built below would write
+  // all of TruncIntFP's value, 8 bytes where 4 were asked for, so leave it to
+  // the normal truncating store.
+  if (Val.getOpcode() != ISD::FP_TO_SINT || SD->isTruncatingStore() ||
       (Val.getValueSizeInBits() > 32 && SingleFloat))
     return SDValue();
 
