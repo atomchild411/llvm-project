@@ -63,7 +63,12 @@ IRIX_NETDB_ALIAS(getnameinfo);
 
 
 extern int inet_pton(int, const char *, void *);
+// <arpa/inet.h> declares inet_ntop (with socklen_t) under the same condition;
+// declare it here only where it does not, so that exactly one declaration is
+// visible in every macro state.
+#if !(_NO_XOPEN4 && _NO_XOPEN5)
 extern const char *inet_ntop(int, const void *, char *, size_t);
+#endif
 
 #pragma weak in6addr_any
 const struct in6_addr in6addr_any = IN6ADDR_ANY_INIT;
