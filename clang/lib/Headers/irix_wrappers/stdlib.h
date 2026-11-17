@@ -33,7 +33,23 @@
  * IRIX's under another name; the POSIX one is declared below.  Same libc
  * function, same calling convention. */
 #define putenv __irix_putenv_declaration
+#define realpath __irix_libc_realpath
+#define getcwd __irix_libc_getcwd
 #include_next <stdlib.h>
+#undef realpath
+#undef getcwd
+/* realpath and getcwd: IRIX's do not allocate the result when given a NULL
+ * buffer (POSIX 2008's realpath, glibc's and the BSDs' getcwd(NULL, 0) do);
+ * compiler-rt's irix/pathalloc.c does, and hands every other call to IRIX's.
+ * IRIX's own declarations are read under other names above. */
+#ifdef __cplusplus
+extern "C" {
+#endif
+char *realpath(const char *, char *) __asm__("__irix_realpath");
+char *getcwd(char *, size_t) __asm__("__irix_getcwd");
+#ifdef __cplusplus
+}
+#endif
 
 /* alloca: glibc's and the BSDs' <stdlib.h> declare it outside strict ISO C
  * (and for C++ always, where g++ defines _GNU_SOURCE); IRIX's only in
@@ -165,7 +181,6 @@ long mrand48(void);
 long nrand48(unsigned short[3]);
 char *ptsname(int);
 long random(void);
-char *realpath(const char *, char *);
 unsigned short *seed48(unsigned short[3]);
 void setkey(const char *);
 char *setstate(const char *);

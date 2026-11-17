@@ -33,12 +33,14 @@
 #define __IRIX_GETOPT_INDIRECT_UNISTD
 #endif
 #define sysconf __irix_libc_sysconf
+#define getcwd __irix_libc_getcwd
 #define atfork_child __irix_atfork_child
 #define atfork_child_prepend __irix_atfork_child_prepend
 #define atfork_parent __irix_atfork_parent
 #define atfork_pre __irix_atfork_pre
 #include_next <unistd.h>
 #undef sysconf
+#undef getcwd
 #undef atfork_child
 #undef atfork_child_prepend
 #undef atfork_parent
@@ -53,6 +55,9 @@ extern "C" {
 #endif
 void _exit(int) __attribute__((__noreturn__));
 long sysconf(int) __asm__("__irix_sysconf");
+/* getcwd(NULL, 0) allocates, as with glibc and the BSDs (compiler-rt's
+ * irix/pathalloc.c; IRIX's own is read under another name above). */
+char *getcwd(char *, size_t) __asm__("__irix_getcwd");
 /* POSIX 2008's (compiler-rt's irix/atfile.c; AT_ constants in <fcntl.h>). */
 int faccessat(int, const char *, int, int);
 int fchownat(int, const char *, uid_t, gid_t, int);
