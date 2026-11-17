@@ -35,9 +35,11 @@
 #define putenv __irix_putenv_declaration
 #define realpath __irix_libc_realpath
 #define getcwd __irix_libc_getcwd
+#define bsearch __irix_libc_bsearch
 #include_next <stdlib.h>
 #undef realpath
 #undef getcwd
+#undef bsearch
 /* realpath and getcwd: IRIX's do not allocate the result when given a NULL
  * buffer (POSIX 2008's realpath, glibc's and the BSDs' getcwd(NULL, 0) do);
  * compiler-rt's irix/pathalloc.c does, and hands every other call to IRIX's.
@@ -47,6 +49,11 @@ extern "C" {
 #endif
 char *realpath(const char *, char *) __asm__("__irix_realpath");
 char *getcwd(char *, size_t) __asm__("__irix_getcwd");
+/* bsearch of an empty array (nel 0, base NULL) finds nothing: IRIX's wraps
+ * around and calls the comparator on a wild pointer (compiler-rt's
+ * irix/bsearch.c). */
+void *bsearch(const void *, const void *, size_t, size_t,
+              int (*)(const void *, const void *)) __asm__("__irix_bsearch");
 #ifdef __cplusplus
 }
 #endif

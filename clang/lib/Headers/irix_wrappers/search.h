@@ -10,7 +10,19 @@
 #ifndef __CLANG_IRIX_SEARCH_H
 #define __CLANG_IRIX_SEARCH_H
 
+/* IRIX declares bsearch here too: read it under another name, and send
+ * bsearch where <stdlib.h> does (compiler-rt's irix/bsearch.c). */
+#define bsearch __irix_libc_bsearch
 #include_next <search.h>
+#undef bsearch
+#ifdef __cplusplus
+extern "C" {
+#endif
+void *bsearch(const void *, const void *, size_t, size_t,
+              int (*)(const void *, const void *)) __asm__("__irix_bsearch");
+#ifdef __cplusplus
+}
+#endif
 
 /* POSIX's, in IRIX's libc, which its header declares only in SGI mode (and
  * some X/Open modes): declared here outside SGI mode, with POSIX's

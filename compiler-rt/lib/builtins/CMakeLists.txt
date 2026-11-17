@@ -289,6 +289,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "IRIX")
     irix/grouplist.c
     irix/dlsym.c
     irix/pathalloc.c
+    irix/bsearch.c
     irix/fts.c
   )
   # They stand in for libc's functions, so they keep default visibility: a
