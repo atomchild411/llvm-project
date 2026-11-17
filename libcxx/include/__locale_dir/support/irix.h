@@ -86,13 +86,18 @@ inline _LIBCPP_HIDE_FROM_ABI int __mb_len_max(__locale_t) { return MB_CUR_MAX; }
 inline _LIBCPP_HIDE_FROM_ABI wint_t __btowc(int __ch, __locale_t) { return ::btowc(__ch); }
 inline _LIBCPP_HIDE_FROM_ABI int __wctob(wint_t __ch, __locale_t) { return ::wctob(__ch); }
 
+// IRIX's mbtowc() fails (-1) when given more than INT_MAX bytes, and libc++
+// passes (size_t)-1 for NUL-terminated strings: no character is longer than
+// MB_LEN_MAX bytes, so never ask for more.
+inline _LIBCPP_HIDE_FROM_ABI size_t __mb_clamp(size_t __n) { return __n < MB_LEN_MAX ? __n : MB_LEN_MAX; }
+
 inline _LIBCPP_HIDE_FROM_ABI size_t __mbrtowc(wchar_t* __pwc, const char* __s, size_t __n, mbstate_t*, __locale_t) {
   if (__s == nullptr)
     return 0;
   if (__n == 0)
     return static_cast<size_t>(-2);
   wchar_t __wc;
-  int __r = ::mbtowc(&__wc, __s, __n);
+  int __r = ::mbtowc(&__wc, __s, __locale::__mb_clamp(__n));
   if (__r < 0) {
     errno = EILSEQ;
     return static_cast<size_t>(-1);
@@ -103,7 +108,7 @@ inline _LIBCPP_HIDE_FROM_ABI size_t __mbrtowc(wchar_t* __pwc, const char* __s, s
 }
 
 inline _LIBCPP_HIDE_FROM_ABI int __mbtowc(wchar_t* __pwc, const char* __pmb, size_t __max, __locale_t) {
-  return ::mbtowc(__pwc, __pmb, __max);
+  return ::mbtowc(__pwc, __pmb, __locale::__mb_clamp(__max));
 }
 
 inline _LIBCPP_HIDE_FROM_ABI size_t __mbrlen(const char* __s, size_t __n, mbstate_t* __ps, __locale_t __loc) {
@@ -131,7 +136,7 @@ __mbsnrtowcs(wchar_t* __dest, const char** __src, size_t __nms, size_t __len, mb
     if (__nms == 0)
       break;
     wchar_t __wc;
-    int __r = ::mbtowc(&__wc, __s, __nms);
+    int __r = ::mbtowc(&__wc, __s, __locale::__mb_clamp(__nms));
     if (__r < 0) {
       errno = EILSEQ;
       if (__dest)
