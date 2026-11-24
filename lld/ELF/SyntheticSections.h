@@ -190,6 +190,48 @@ public:
   uint64_t size;
 };
 
+// .MIPS.stubs: IRIX lazy binding. A function this link does not define, with
+// a global entry in the primary GOT that is only ever called through, gets a
+// stub here: its GOT entry starts at the stub, and its .dynsym entry (still
+// undefined) has the stub's address as its value, which tells rld the entry is
+// lazy. The first call goes through the stub to rld's resolver (GOT[0]) with
+// the symbol's .dynsym index in $24 and the return address in $15; rld looks
+// the symbol up then and writes its address into the GOT entry. Functions a
+// process never calls are never looked up, where otherwise rld resolves every
+// global GOT entry as it loads the object.
+class MipsStubsSection final : public SyntheticSection {
+public:
+  MipsStubsSection(Ctx &);
+  void addSymbol(Symbol *sym);
+  // The stub's address, or 0 if `sym` has none.
+  uint64_t getStubVA(const Symbol *sym) const;
+  size_t getSize() const override;
+  bool isNeeded() const override { return !syms.empty(); }
+  void writeTo(uint8_t *buf) override;
+
+private:
+  // A break first, as SGI's ld writes it, then five words a stub.
+  static constexpr size_t headerSize = 4;
+  static constexpr size_t stubSize = 20;
+  SmallVector<Symbol *, 0> syms;
+  llvm::DenseMap<const Symbol *, uint32_t> index;
+};
+
+// .msym (IRIX): for each .dynsym entry, the ELF hash of its name and the index
+// of its first dynamic relocation (lld sorts .rel.dyn by symbol), as SGI's ld
+// writes them; flags 1. Without it rld hashes every name again and searches
+// .rel.dyn for each global symbol it handles ("ignoring msym").
+class MipsMsymSection final : public SyntheticSection {
+public:
+  MipsMsymSection(Ctx &);
+  size_t getSize() const override;
+  bool isNeeded() const override;
+  // Hashes, with no relocation indexes yet.
+  void writeTo(uint8_t *buf) override;
+  // The relocation indexes, read from .rel.dyn as written to `bufStart`.
+  void writeRelIndexes(uint8_t *bufStart);
+};
+
 class MipsGotSection final : public SyntheticSection {
 public:
   MipsGotSection(Ctx &);

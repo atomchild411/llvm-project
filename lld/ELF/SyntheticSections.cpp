@@ -1130,6 +1130,17 @@ void MipsGotSection::build() {
                                        *p.first.first, p.first.second, R_ABS});
     }
   }
+
+  // IRIX lazy binding: stubs for the imported functions of the primary GOT
+  // that are only ever called (MipsStubsSection). Not a weak one: `if (f)
+  // f();` may test the very GOT entry, which must be 0 while f is absent.
+  if (ctx.in.mipsStubs && !gots.empty())
+    for (const std::pair<Symbol *, size_t> &p : gots.front().global) {
+      Symbol *s = p.first;
+      if (s->isPreemptible && !s->isDefined() && s->isFunc() && !s->isWeak() &&
+          !s->hasFlag(MIPS_ADDR_TAKEN))
+        ctx.in.mipsStubs->addSymbol(s);
+    }
 }
 
 bool MipsGotSection::isNeeded() const {
@@ -1145,6 +1156,86 @@ uint64_t MipsGotSection::getGp(const InputFile *f) const {
   if (!f || f->mipsGotIndex == uint32_t(-1) || f->mipsGotIndex == 0)
     return ctx.sym.mipsGp->getVA(ctx, 0);
   return getVA() + gots[f->mipsGotIndex].startIndex * ctx.arg.wordsize + 0x7ff0;
+}
+
+MipsMsymSection::MipsMsymSection(Ctx &ctx)
+    : SyntheticSection(ctx, ".msym", 0x70000001 /* SHT_MIPS_MSYM */, SHF_ALLOC,
+                       4) {
+  entsize = 8;
+}
+
+bool MipsMsymSection::isNeeded() const {
+  return ctx.mainPart->dynSymTab && ctx.mainPart->dynSymTab->isNeeded();
+}
+
+size_t MipsMsymSection::getSize() const {
+  return isNeeded() ? ctx.mainPart->dynSymTab->getNumSymbols() * 8 : 0;
+}
+
+void MipsMsymSection::writeTo(uint8_t *buf) {
+  // Entry 0 (the null symbol): hash 0, flags 1, as SGI's ld writes it.
+  write32(ctx, buf, 0);
+  write32(ctx, buf + 4, 1);
+  uint8_t *p = buf + 8;
+  for (const SymbolTableEntry &e : ctx.mainPart->dynSymTab->getSymbols()) {
+    write32(ctx, p, object::hashSysV(e.sym->getName()));
+    write32(ctx, p + 4, 1);
+    p += 8;
+  }
+}
+
+void MipsMsymSection::writeRelIndexes(uint8_t *bufStart) {
+  RelocationBaseSection *rel = ctx.mainPart->relaDyn.get();
+  if (!isNeeded() || !rel || !rel->getParent() || rel->getSize() == 0)
+    return;
+  const uint8_t *r = bufStart + rel->getParent()->offset + rel->outSecOff;
+  uint8_t *msym = bufStart + getParent()->offset + outSecOff;
+  size_t n = rel->getSize() / rel->entsize, nsym = getSize() / 8;
+  uint32_t last = 0;
+  for (size_t j = 0; j < n; ++j) {
+    uint32_t sym = read32(ctx, r + j * rel->entsize + 4) >> 8; // ELF32_R_SYM
+    if (sym == last || sym >= nsym)
+      continue;
+    last = sym;
+    write32(ctx, msym + sym * 8 + 4, (uint32_t(j) << 8) | 1);
+  }
+}
+
+MipsStubsSection::MipsStubsSection(Ctx &ctx)
+    : SyntheticSection(ctx, ".MIPS.stubs", SHT_PROGBITS,
+                       SHF_ALLOC | SHF_EXECINSTR, 16) {}
+
+void MipsStubsSection::addSymbol(Symbol *sym) {
+  if (index.try_emplace(sym, syms.size()).second)
+    syms.push_back(sym);
+}
+
+uint64_t MipsStubsSection::getStubVA(const Symbol *sym) const {
+  auto it = index.find(sym);
+  if (it == index.end())
+    return 0;
+  return getVA() + headerSize + it->second * stubSize;
+}
+
+size_t MipsStubsSection::getSize() const {
+  return syms.empty() ? 0 : headerSize + syms.size() * stubSize;
+}
+
+void MipsStubsSection::writeTo(uint8_t *buf) {
+  write32(ctx, buf, 0x0006000d); // break 6
+  uint8_t *p = buf + headerSize;
+  for (const Symbol *s : syms) {
+    uint32_t i = ctx.mainPart->dynSymTab->getSymbolIndex(*s);
+    if (i > 0xffff)
+      Err(ctx) << "too many dynamic symbols for IRIX lazy-binding stubs (" << s
+               << " is number " << i << "): link with -z now";
+    write32(ctx, p, 0x8f998010);         // lw    $25, -0x7ff0($28)  (GOT[0])
+    write32(ctx, p + 4, 0x03e07825);     // move  $15, $31
+    write32(ctx, p + 8, 0x0320f809);     // jalr  $25
+    write32(ctx, p + 12, 0x34180000 | (i & 0xffff)); // ori $24, $0, index
+    write32(ctx, p + 16, 0);             // nop
+    p += stubSize;
+  }
 }
 
 void MipsGotSection::writeTo(uint8_t *buf) {
@@ -1189,8 +1280,14 @@ void MipsGotSection::writeTo(uint8_t *buf) {
     // Write VA to the primary GOT only. For secondary GOTs that
     // will be done by REL32 dynamic relocations.
     if (&g == &gots.front())
-      for (const std::pair<Symbol *, size_t> &p : g.global)
-        write(p.second, p.first, 0);
+      for (const std::pair<Symbol *, size_t> &p : g.global) {
+        uint64_t stub =
+            ctx.in.mipsStubs ? ctx.in.mipsStubs->getStubVA(p.first) : 0;
+        if (stub)
+          writeUint(ctx, buf + p.second * ctx.arg.wordsize, stub);
+        else
+          write(p.second, p.first, 0);
+      }
     for (const std::pair<Symbol *, size_t> &p : g.relocs)
       write(p.second, p.first, 0);
     for (const std::pair<Symbol *, size_t> &p : g.tls)
@@ -1609,6 +1706,8 @@ DynamicSection<ELFT>::computeContents() {
     }
     if (ctx.arg.osabi == ELFOSABI_IRIX && ctx.in.mipsOptions)
       addInSec(DT_MIPS_OPTIONS, *ctx.in.mipsOptions);
+    if (ctx.in.mipsMsym && ctx.in.mipsMsym->isNeeded())
+      addInSec(0x70000007 /* DT_MIPS_MSYM */, *ctx.in.mipsMsym);
   }
 
   // DT_PPC_GOT indicates to glibc Secure PLT is used. If DT_PPC_GOT is absent,
@@ -2443,6 +2542,9 @@ template <class ELFT> void SymbolTableSection<ELFT>::writeTo(uint8_t *buf) {
       Symbol *sym = ent.sym;
       if (sym->isInPlt(ctx) && sym->hasFlag(NEEDS_COPY))
         eSym->st_other |= STO_MIPS_PLT;
+      if (ctx.in.mipsStubs && strTabSec.isDynamic())
+        if (uint64_t stub = ctx.in.mipsStubs->getStubVA(sym))
+          eSym->st_value = stub;
       if (isMicroMips(ctx)) {
         // We already set the less-significant bit for symbols
         // marked by the `STO_MIPS_MICROMIPS` flag and for microMIPS PLT
@@ -4996,6 +5098,16 @@ template <class ELFT> void elf::createSyntheticSections(Ctx &ctx) {
   if (ctx.arg.emachine == EM_MIPS) {
     ctx.in.mipsGot = std::make_unique<MipsGotSection>(ctx);
     add(*ctx.in.mipsGot);
+    if (ctx.arg.osabi == ELFOSABI_IRIX && !ctx.arg.zNow &&
+        !ctx.arg.relocatable && ctx.arg.wordsize == 4) {
+      ctx.in.mipsStubs = std::make_unique<MipsStubsSection>(ctx);
+      add(*ctx.in.mipsStubs);
+    }
+    if (ctx.arg.osabi == ELFOSABI_IRIX && !ctx.arg.relocatable &&
+        ctx.arg.wordsize == 4) {
+      ctx.in.mipsMsym = std::make_unique<MipsMsymSection>(ctx);
+      add(*ctx.in.mipsMsym);
+    }
   } else {
     ctx.in.got = std::make_unique<GotSection>(ctx);
     add(*ctx.in.got);

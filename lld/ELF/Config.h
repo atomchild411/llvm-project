@@ -64,6 +64,8 @@ class IgotPltSection;
 class InputSection;
 class IpltSection;
 class MipsGotSection;
+class MipsStubsSection;
+class MipsMsymSection;
 class MipsRldMapSection;
 class PPC32Got2Section;
 class PPC64LongBranchTargetSection;
@@ -582,6 +584,8 @@ struct InStruct {
   std::unique_ptr<PPC64LongBranchTargetSection> ppc64LongBranchTarget;
   std::unique_ptr<SyntheticSection> mipsAbiFlags;
   std::unique_ptr<MipsGotSection> mipsGot;
+  std::unique_ptr<MipsStubsSection> mipsStubs;
+  std::unique_ptr<MipsMsymSection> mipsMsym;
   std::unique_ptr<SyntheticSection> mipsOptions;
   std::unique_ptr<SyntheticSection> mipsReginfo;
   std::unique_ptr<MipsRldMapSection> mipsRldMap;

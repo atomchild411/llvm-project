@@ -386,6 +386,10 @@ template <class ELFT> void Writer<ELFT>::run() {
         writeTrapInstr();
       writeHeader();
       writeSections();
+      // IRIX .msym: each symbol's first dynamic relocation, from .rel.dyn as
+      // written (before the build ID, which hashes the file).
+      if (ctx.in.mipsMsym)
+        ctx.in.mipsMsym->writeRelIndexes(ctx.bufferStart);
     } else {
       writeSectionsBinary();
     }

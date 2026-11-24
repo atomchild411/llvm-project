@@ -55,6 +55,9 @@ enum {
   NEEDS_GOT_NONAUTH = 1 << 10,
   NEEDS_TLSDESC_AUTH = 1 << 11,
   NEEDS_TLSDESC_NONAUTH = 1 << 12,
+  // MIPS: referenced other than by a call through the GOT (its address is
+  // taken), so its GOT entry may not start at an IRIX lazy-binding stub.
+  MIPS_ADDR_TAKEN = 1 << 13,
 };
 
 // The base class for real symbol classes.

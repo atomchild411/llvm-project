@@ -1536,6 +1536,13 @@ void RelocationScanner::scanOne(typename Relocs<RelTy>::const_iterator &i) {
   if (expr == R_NONE)
     return;
 
+  // IRIX lazy binding (MipsStubsSection): only a function that is called
+  // through the GOT and nothing else may have its GOT entry start at a stub.
+  if (LLVM_UNLIKELY(ctx.arg.emachine == EM_MIPS) && !sym.isLocal() &&
+      type != R_MIPS_CALL16 && type != R_MIPS_CALL_HI16 &&
+      type != R_MIPS_CALL_LO16 && type != R_MIPS_JALR)
+    sym.setFlags(MIPS_ADDR_TAKEN);
+
   // Error if the target symbol is undefined. Symbol index 0 may be used by
   // marker relocations, e.g. R_*_NONE and R_ARM_V4BX. Don't error on them.
   if (sym.isUndefined() && symIndex != 0 &&
