@@ -1138,7 +1138,14 @@ void MipsGotSection::build() {
   // object, several GOTs) is filled in by an R_MIPS_REL32, and rld skips a
   // relocation against a symbol whose value is a stub, leaving the entry 0
   // (WebKit's processes jumped to 0 on the first such call).
-  if (ctx.in.mipsStubs && !gots.empty()) {
+  // A stub passes the symbol's .dynsym index in a 16-bit immediate, so an
+  // object with about 65536 dynamic symbols (clang, linked --export-dynamic)
+  // gets no stubs at all and is bound at load, as with -z now. The margin is
+  // for the section symbols .dynsym gets later; the imports this would stub
+  // come last in .dynsym (GOT order), past any index a stub can carry.
+  bool stubsFit = !ctx.mainPart->dynSymTab ||
+                  ctx.mainPart->dynSymTab->getNumSymbols() + 0x1000 <= 0xffff;
+  if (ctx.in.mipsStubs && !gots.empty() && stubsFit) {
     llvm::DenseSet<const Symbol *> relocated;
     for (const FileGot &g : gots) {
       for (const std::pair<Symbol *, size_t> &p : g.relocs)
