@@ -1134,13 +1134,26 @@ void MipsGotSection::build() {
   // IRIX lazy binding: stubs for the imported functions of the primary GOT
   // that are only ever called (MipsStubsSection). Not a weak one: `if (f)
   // f();` may test the very GOT entry, which must be 0 while f is absent.
-  if (ctx.in.mipsStubs && !gots.empty())
+  // Nor one with a dynamic relocation: a secondary GOT's entry for it (a big
+  // object, several GOTs) is filled in by an R_MIPS_REL32, and rld skips a
+  // relocation against a symbol whose value is a stub, leaving the entry 0
+  // (WebKit's processes jumped to 0 on the first such call).
+  if (ctx.in.mipsStubs && !gots.empty()) {
+    llvm::DenseSet<const Symbol *> relocated;
+    for (const FileGot &g : gots) {
+      for (const std::pair<Symbol *, size_t> &p : g.relocs)
+        relocated.insert(p.first);
+      if (&g != &gots.front())
+        for (const std::pair<Symbol *, size_t> &p : g.global)
+          relocated.insert(p.first);
+    }
     for (const std::pair<Symbol *, size_t> &p : gots.front().global) {
       Symbol *s = p.first;
       if (s->isPreemptible && !s->isDefined() && s->isFunc() && !s->isWeak() &&
-          !s->hasFlag(MIPS_ADDR_TAKEN))
+          !s->hasFlag(MIPS_ADDR_TAKEN) && !relocated.contains(s))
         ctx.in.mipsStubs->addSymbol(s);
     }
+  }
 }
 
 bool MipsGotSection::isNeeded() const {
